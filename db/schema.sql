@@ -324,7 +324,7 @@ COPY public.setting (language_id,group_id,name,type,text_value) FROM stdin;
 1	2	footer_text	\N	<div>Avangardnaya Ulitsa, 3, Moscow</div><h3 style="margin:.25rem 0;"><a href="tel:+74955320732"><img src="/static/img/icon_phone_white.svg" style="margin-right:10px;width:15px;">8 495 532-07-32</a></h3><div><a href="mailto:info@archivarius.ru">info@archivarius.ru</a></div>
 1	2	header_logo_description	\N	Digital archive
 1	2	header_logo_text	\N	Archivarius
-1	2	header_logo_url	\N	/static/img/archivarius_logo.svg
+1	2	header_logo_url	\N	/static/img/archivarius_logo.png
 1	3	admin_site_name	\N	Archivarius Admin Panel
 1	4	admin_header_logo_description	\N	Admin Panel
 1	4	admin_header_logo_text	\N	Archivarius
@@ -336,7 +336,7 @@ COPY public.setting (language_id,group_id,name,type,text_value) FROM stdin;
 2	2	footer_text	\N	<div>Москва, ул.&nbsp;Авангардная, дом&nbsp;3. БЦ&nbsp;Сатурн</div><h3 style="margin:.25rem 0;"><a href="tel:+74955320732"><img src="/static/img/icon_phone_white.svg" style="margin-right:10px;width:15px;">8 495 532-07-32</a></h3><div><a href="mailto:info@archivarius.ru">info@archivarius.ru</a></div>
 2	2	header_logo_description	\N	Электронный архив
 2	2	header_logo_text	\N	Архивариус
-2	2	header_logo_url	\N	/static/img/archivarius_logo.svg
+2	2	header_logo_url	\N	/static/img/archivarius_logo.png
 2	3	admin_site_name	\N	Архивариус. Панель управления
 2	4	admin_header_logo_description	\N	Панель управления
 2	4	admin_header_logo_text	\N	Архивариус
