@@ -59,9 +59,8 @@ chmod -R 775 /var/www/название_репозитория/public/static/stor
 chmod 600 /var/www/название_репозитория/config/archivarius_web_config.php
 
 # 11. Настройка Manticore
+# Скрипт автоматически читает параметры БД из config/archivarius_web_config.php
 php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf
-nano /tmp/manticore_config.conf
-# Замените: sql_db = app_db, sql_user = app_user, sql_pass = ваш_пароль_бд, sql_host = localhost
 mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
 systemctl start manticore && systemctl enable manticore
 # Примечание: ошибка "no tables found" нормальна, если хранилищ еще нет

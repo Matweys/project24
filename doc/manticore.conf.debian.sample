@@ -1,7 +1,48 @@
 #!/usr/bin/env php
 <?php
 
-$db = new PDO('pgsql:dbname=;user=;password=');
+// Чтение конфигурации из файла
+$project_dir = dirname(__DIR__);
+$config_file = $project_dir . '/config/archivarius_web_config.php';
+
+if (!file_exists($config_file)) {
+    fwrite(STDERR, "Ошибка: файл конфигурации не найден: $config_file\n");
+    fwrite(STDERR, "Убедитесь, что вы выполнили шаг 7 инструкции (настройка конфигурации).\n");
+    exit(1);
+}
+
+$config = require $config_file;
+$database_uri = $config['database_uri'] ?? '';
+
+if (empty($database_uri)) {
+    fwrite(STDERR, "Ошибка: database_uri не найден в конфигурации.\n");
+    exit(1);
+}
+
+// Парсинг database_uri для получения параметров
+$db_params = [];
+if (preg_match('/dbname=([^;]+)/', $database_uri, $matches)) {
+    $db_params['dbname'] = $matches[1];
+}
+if (preg_match('/host=([^;]+)/', $database_uri, $matches)) {
+    $db_params['host'] = $matches[1];
+} else {
+    $db_params['host'] = 'localhost';
+}
+if (preg_match('/user=([^;]+)/', $database_uri, $matches)) {
+    $db_params['user'] = $matches[1];
+}
+if (preg_match('/password=([^;]+)/', $database_uri, $matches)) {
+    $db_params['password'] = $matches[1];
+}
+
+// Подключение к БД
+try {
+    $db = new PDO($database_uri);
+} catch (PDOException $e) {
+    fwrite(STDERR, "Ошибка подключения к БД: " . $e->getMessage() . "\n");
+    exit(1);
+}
 
 $r_attributes = $db->prepare('select storage_attribute.*, t.name as type_name
 from storage_attribute
@@ -10,18 +51,40 @@ where storage_id = ?');
 
 $r_storage = $db->prepare('select * from storage');
 $r_storage->execute();
+$storages = $r_storage->fetchAll(\PDO::FETCH_ASSOC);
 
-while ($storage = $r_storage->fetch(\PDO::FETCH_ASSOC)) {
+// Если хранилищ нет, выводим только секцию searchd
+if (empty($storages)) {
+    ?>
+searchd {
+    binlog_path = /var/lib/manticore/binlog
+    client_timeout = 300
+    listen = /run/manticore/manticore.sock:mysql
+    log = /var/log/manticore/searchd.log
+    persistent_connections_limit = 30
+    pid_file = /run/manticore/searchd.pid
+    query_log_format = sphinxql
+    telemetry = 0
+}
+<?php
+    exit(0);
+}
+
+foreach ($storages as $storage) {
     $r_attributes->execute([$storage['id']]);
     $attributes = $r_attributes->fetchAll(\PDO::FETCH_ASSOC);
 
     ?>
 source file_<?php echo $storage['id']; ?>_filter {
     type = pgsql
-    sql_db =
-    sql_host =
-    sql_pass =
-    sql_user =
+    sql_db = <?php echo $db_params['dbname']; ?>
+
+    sql_host = <?php echo $db_params['host']; ?>
+
+    sql_pass = <?php echo $db_params['password']; ?>
+
+    sql_user = <?php echo $db_params['user']; ?>
+
 
     sql_query = select id, name, coalesce(parent_id, 0) as parent_id<?php echo is_array($attributes) && $attributes ? ',' . implode(',', array_map(function ($v) {
         switch ($v['type_name'] ?? '') {
@@ -59,10 +122,14 @@ sql_attr_bigint = parent_id
 }
 source file_<?php echo $storage['id']; ?>_main {
     type = pgsql
-    sql_db =
-    sql_host =
-    sql_pass =
-    sql_user =
+    sql_db = <?php echo $db_params['dbname']; ?>
+
+    sql_host = <?php echo $db_params['host']; ?>
+
+    sql_pass = <?php echo $db_params['password']; ?>
+
+    sql_user = <?php echo $db_params['user']; ?>
+
 
     sql_query = select id, name, text, coalesce(parent_id, 0) as parent_id<?php echo is_array($attributes) && $attributes ? ',' . implode(',', array_map(function ($v) {
         switch ($v['type_name'] ?? '') {
