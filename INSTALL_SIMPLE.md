@@ -394,29 +394,32 @@ tail -f /var/log/postgresql/postgresql-*.log
 
 ## Шаг 16: Замена логотипа (опционально)
 
-Если вы хотите использовать свой логотип вместо стандартного:
+**Примечание:** По умолчанию в проекте используется логотип `/static/img/archivarius_logo.png`. Если вы хотите использовать свой логотип:
 
 ```bash
 cd /var/www/название_репозитория
 
 # 1. Скопируйте ваш PNG файл в директорию со статикой
 # Замените /path/to/your/logo.png на путь к вашему файлу
-cp /path/to/your/logo.png public/static/img/logo.png
+cp /path/to/your/logo.png public/static/img/archivarius_logo.png
 
 # 2. Установите правильные права доступа
-chown www-data:www-data public/static/img/logo.png
-chmod 644 public/static/img/logo.png
+chown www-data:www-data public/static/img/archivarius_logo.png
+chmod 644 public/static/img/archivarius_logo.png
 
-# 3. Обновите настройку в базе данных
+# 3. Обновите настройку в базе данных (если файл называется по-другому)
 export PGPASSWORD='ваш_пароль_бд'
 psql -h localhost -U app_user -d app_db -c "
 UPDATE public.setting 
-SET text_value = '/static/img/logo.png' 
+SET text_value = '/static/img/ваш_логотип.png' 
 WHERE name = 'header_logo_url' AND language_id IN (1, 2);
 "
 ```
 
-**Примечание:** Замените `logo.png` на имя вашего файла, если оно отличается. Путь должен быть относительным от директории `public/` (например, `/static/img/ваш_логотип.png`).
+**Важно:** 
+- Если ваш файл называется `archivarius_logo.png` и находится в `public/static/img/`, то шаг 3 можно пропустить — настройка уже правильная по умолчанию
+- Если файл называется по-другому, замените `ваш_логотип.png` на имя вашего файла в шаге 3
+- Путь должен быть относительным от директории `public/` (например, `/static/img/ваш_логотип.png`)
 
 ---
 
