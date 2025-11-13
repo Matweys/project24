@@ -9,10 +9,15 @@ require __DIR__ . '/vendor/autoload.php';
 $config = require __DIR__ . '/config/archivarius_web_config.php';
 
 try {
-    $db = new PDO($config['database_uri']);
-    $auth = new \PHPAuth\Auth($db, $config['auth']);
+    // Принудительно используем TCP подключение для обхода peer authentication
+    $database_uri = $config['database_uri'];
+    if (strpos($database_uri, 'host=') === false) {
+        $database_uri .= ';host=localhost';
+    }
+    $db = new PDO($database_uri);
+    $auth = new \Auth\Auth($db, new \Auth\Config($db, $config['auth'], \Auth\Config::CONFIG_TYPE_ARRAY, 'ru_RU'));
     
-    $email = 'admin';
+    $email = 'admin@localhost.ru';
     $password = 'Qq1234567!';
     
     // Проверяем, существует ли пользователь
@@ -26,23 +31,31 @@ try {
         
         // Используем метод getHash из Auth для правильного хеширования
         $hash = $auth->getHash($password);
-        $updateStmt = $db->prepare("UPDATE public.user SET password = ?, modified = current_timestamp WHERE id = ?");
+        $updateStmt = $db->prepare("UPDATE public.user SET password = ?, isactive = true, modified = current_timestamp WHERE id = ?");
         $updateStmt->execute([$hash, $userId]);
         
         echo "Пароль успешно обновлен для пользователя $email\n";
     } else {
-        // Создаем нового пользователя
+        // Создаем нового пользователя напрямую в БД, чтобы избежать проблем с типами данных
         echo "Создаем нового пользователя $email...\n";
         
-        $result = $auth->register($email, $password, $password, null, null, true);
+        // Используем метод getHash из Auth для правильного хеширования
+        $hash = $auth->getHash($password);
         
-        if ($result['error']) {
-            echo "Ошибка при создании пользователя: " . $result['message'] . "\n";
+        $insertStmt = $db->prepare("
+            INSERT INTO public.user (email, password, isactive, created, modified) 
+            VALUES (?, ?, true, current_timestamp, current_timestamp)
+            RETURNING id
+        ");
+        $insertStmt->execute([$email, $hash]);
+        $userId = $insertStmt->fetchColumn();
+        
+        if (!$userId) {
+            echo "Ошибка при создании пользователя\n";
             exit(1);
-        } else {
-            echo "Пользователь $email успешно создан\n";
-            $userId = $result['uid'];
         }
+        
+        echo "Пользователь $email успешно создан\n";
     }
     
     // Назначаем роли администратора
@@ -50,9 +63,9 @@ try {
     
     $roleStmt = $db->prepare("
         INSERT INTO user_role_user (role_id, user_id) 
-        SELECT role_id, ? 
-        FROM user_role 
-        WHERE name IN ('admin', 'user_management', 'storage_management')
+        SELECT r.id, ? 
+        FROM user_role r
+        WHERE r.name IN ('admin', 'user_management', 'storage_management')
         ON CONFLICT DO NOTHING
     ");
     $roleStmt->execute([$userId]);

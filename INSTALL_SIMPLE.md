@@ -26,7 +26,11 @@ apt update
 apt upgrade -y
 
 # Установка всех необходимых пакетов
-apt install -y postgresql postgresql-contrib nginx php8.1-fpm php8.1-pgsql php8.1-mysql php8.1-imagick php8.1-mbstring php8.1-zip php8.1-bcmath php8.1-intl php8.1-xml nodejs npm composer git
+apt install -y postgresql postgresql-contrib nginx php8.1-fpm php8.1-pgsql php8.1-mysql php8.1-imagick php8.1-gd php8.1-mbstring php8.1-zip php8.1-bcmath php8.1-intl php8.1-xml composer git
+
+# Установка Node.js 18.x (требуется для компиляции фронтенда)
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+apt install -y nodejs
 ```
 
 ---
@@ -130,9 +134,11 @@ nano config/archivarius_web_config.php
 
 **1. `database_uri` (примерно строка 67):**
 ```php
-'database_uri' => 'pgsql:dbname=app_db;user=app_user;password=ваш_пароль_бд',
+'database_uri' => 'pgsql:host=localhost;dbname=app_db;user=app_user;password=ваш_пароль_бд',
 ```
 Замените `ваш_пароль_бд` на пароль, который вы указали в шаге 5.
+
+**Важно:** Параметр `host=localhost` обязателен для обхода peer authentication в PostgreSQL при работе через PHP-FPM.
 
 **2. `site_url` (примерно строка 88):**
 ```php
@@ -184,7 +190,8 @@ composer install --no-dev --optimize-autoloader
 cd /var/www/название_репозитория/main
 npm install
 npm run compile:main.css
-npm run compile:main.js
+npm run compile
+npm run compress
 npm run update_asset_version
 
 # Страница авторизации
@@ -201,6 +208,11 @@ npm run update_asset_version
 
 ```bash
 cd /var/www/название_репозитория
+
+# Создание директории для загруженных файлов, если её нет
+mkdir -p public/static/storage
+
+# Установка прав доступа
 chown -R www-data:www-data /var/www/название_репозитория
 chmod -R 755 /var/www/название_репозитория
 chmod -R 775 /var/www/название_репозитория/public/static/storage
@@ -255,7 +267,9 @@ systemctl enable manticore
 systemctl status manticore
 
 # Индексация данных
-su - manticore -s /bin/bash -c "indexer --all --rotate"
+# ВАЖНО: Если в базе данных еще нет хранилищ, команда выдаст ошибку "no tables found" - это нормально
+# Индексы появятся автоматически после создания первого хранилища через веб-интерфейс
+su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индексация пропущена: хранилищ еще нет"
 ```
 
 ---
@@ -327,9 +341,9 @@ cd /var/www/название_репозитория
 php setup_admin.php
 ```
 
-Скрипт автоматически создаст пользователя `admin` с паролем `Qq1234567!` и назначит все необходимые роли.
+Скрипт автоматически создаст пользователя `admin@localhost.ru` с паролем `Qq1234567!` и назначит все необходимые роли.
 
-**Логин для входа:** `admin`  
+**Логин для входа:** `admin@localhost.ru`  
 **Пароль для входа:** `Qq1234567!`
 
 **Примечание:** Если скрипт выдает ошибку подключения к БД, убедитесь что в конфиге `config/archivarius_web_config.php` правильно указан `database_uri` с паролем.
@@ -363,8 +377,16 @@ systemctl enable manticore
 
 2. **Вход в систему:**
    - Откройте `http://ваш_ip_адрес/login`
-   - **Логин:** `admin`
+   - **Логин:** `admin@localhost.ru`
    - **Пароль:** `Qq1234567!`
+
+3. **Создание первого хранилища:**
+   - После входа вы можете увидеть пустую страницу — это нормально, если еще нет хранилищ
+   - Для создания первого хранилища перейдите по адресу: `http://ваш_ip_адрес/admin/storages/new`
+   - Или откройте список хранилищ: `http://ваш_ip_адрес/admin/storages/`
+   - Создайте первое хранилище через веб-интерфейс
+
+**Примечание:** Если Manticore выдает ошибку "no tables found" при индексации — это нормально. Индексы появятся автоматически после создания первого хранилища.
 
 ---
 
@@ -386,11 +408,47 @@ tail -f /var/log/postgresql/postgresql-*.log
 
 ---
 
+## Шаг 16: Замена логотипа (опционально)
+
+Если вы хотите использовать свой логотип вместо стандартного:
+
+```bash
+cd /var/www/название_репозитория
+
+# 1. Скопируйте ваш PNG файл в директорию со статикой
+# Замените /path/to/your/logo.png на путь к вашему файлу
+cp /path/to/your/logo.png public/static/img/logo.png
+
+# 2. Установите правильные права доступа
+chown www-data:www-data public/static/img/logo.png
+chmod 644 public/static/img/logo.png
+
+# 3. Обновите настройку в базе данных
+export PGPASSWORD='ваш_пароль_бд'
+psql -h localhost -U app_user -d app_db -c "
+UPDATE public.setting 
+SET text_value = '/static/img/logo.png' 
+WHERE name = 'header_logo_url' AND language_id IN (1, 2);
+"
+```
+
+**Примечание:** Замените `logo.png` на имя вашего файла, если оно отличается. Путь должен быть относительным от директории `public/` (например, `/static/img/ваш_логотип.png`).
+
+---
+
 ## Готово!
 
 После выполнения всех шагов сайт должен работать. Вы можете войти в систему используя:
-- **Логин:** `admin`
+- **Логин:** `admin@localhost.ru`
 - **Пароль:** `Qq1234567!`
+
+**Важные URL:**
+- Главная страница: `http://ваш_ip_адрес/`
+- Страница логина: `http://ваш_ip_адрес/login`
+- Управление хранилищами: `http://ваш_ip_адрес/admin/storages/`
+- Создание хранилища: `http://ваш_ip_адрес/admin/storages/new`
+- Управление пользователями: `http://ваш_ip_адрес/admin/users/`
+- Логи системы: `http://ваш_ip_адрес/admin/log/`
 
 ---
 

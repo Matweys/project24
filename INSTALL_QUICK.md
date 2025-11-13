@@ -7,7 +7,8 @@
 apt update && apt upgrade -y
 
 # 2. Установка зависимостей
-apt install -y postgresql postgresql-contrib nginx php8.1-fpm php8.1-pgsql php8.1-mysql php8.1-imagick php8.1-mbstring php8.1-zip php8.1-bcmath php8.1-intl php8.1-xml nodejs npm composer git
+apt install -y postgresql postgresql-contrib nginx php8.1-fpm php8.1-pgsql php8.1-mysql php8.1-imagick php8.1-gd php8.1-mbstring php8.1-zip php8.1-bcmath php8.1-intl php8.1-xml composer git
+curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt install -y nodejs
 
 # 3. Установка Manticore
 wget https://repo.manticoresearch.com/manticore-repo.noarch.deb && dpkg -i manticore-repo.noarch.deb && apt update && apt install -y manticore manticore-extra
@@ -47,10 +48,11 @@ nano config/archivarius_web_config.php
 composer install --no-dev --optimize-autoloader
 
 # 9. Компиляция фронтенда
-cd main && npm install && npm run compile:main.css && npm run compile:main.js && npm run update_asset_version && cd ..
+cd main && npm install && npm run compile:main.css && npm run compile && npm run compress && npm run update_asset_version && cd ..
 cd auth && npm install && npm run compile:main.css && npm run compile:main.js && npm run update_asset_version && cd ..
 
 # 10. Права доступа
+mkdir -p /var/www/название_репозитория/public/static/storage
 chown -R www-data:www-data /var/www/название_репозитория
 chmod -R 755 /var/www/название_репозитория
 chmod -R 775 /var/www/название_репозитория/public/static/storage
@@ -59,10 +61,11 @@ chmod 600 /var/www/название_репозитория/config/archivarius_we
 # 11. Настройка Manticore
 php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf
 nano /tmp/manticore_config.conf
-# Замените: sql_db = app_db, sql_user = app_user, sql_pass = ваш_пароль_бд
+# Замените: sql_db = app_db, sql_user = app_user, sql_pass = ваш_пароль_бд, sql_host = localhost
 mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
 systemctl start manticore && systemctl enable manticore
-su - manticore -s /bin/bash -c "indexer --all --rotate"
+# Примечание: ошибка "no tables found" нормальна, если хранилищ еще нет
+su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индексация пропущена: хранилищ еще нет"
 
 # 12. Настройка Nginx
 nano /etc/nginx/sites-available/app
@@ -82,7 +85,7 @@ systemctl start manticore && systemctl enable manticore
 
 ## Данные для входа
 
-- **Логин:** `admin`
+- **Логин:** `admin@localhost.ru`
 - **Пароль:** `Qq1234567!`
 
 ## Что нужно изменить в конфиге
@@ -91,8 +94,9 @@ systemctl start manticore && systemctl enable manticore
 
 1. **`database_uri`** (строка ~67):
    ```php
-   'database_uri' => 'pgsql:dbname=app_db;user=app_user;password=ваш_пароль_бд',
+   'database_uri' => 'pgsql:host=localhost;dbname=app_db;user=app_user;password=ваш_пароль_бд',
    ```
+   **Важно:** Параметр `host=localhost` обязателен для обхода peer authentication.
 
 2. **`site_url`** (строка ~88):
    ```php
@@ -158,6 +162,13 @@ server {
 ## Готово!
 
 Откройте `http://ваш_ip_или_домен` и войдите:
-- Логин: `admin`
+- Логин: `admin@localhost.ru`
 - Пароль: `Qq1234567!`
+
+**Важные URL:**
+- Создание хранилища: `http://ваш_ip_или_домен/admin/storages/new`
+- Управление хранилищами: `http://ваш_ip_или_домен/admin/storages/`
+- Управление пользователями: `http://ваш_ip_или_домен/admin/users/`
+
+**Примечание:** После входа может быть пустая страница — это нормально. Создайте первое хранилище через админ-панель.
 
