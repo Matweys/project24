@@ -1,0 +1,30 @@
+{
+  "en": [
+    {
+      "name": "keyboard_shortcuts",
+      "label": "Keyboard Shortcuts"
+    },
+    {
+      "name": "import_attributes",
+      "label": "Import file attributes"
+    },
+    {
+      "name": "move_files",
+      "label": "Move files"
+    }
+  ],
+  "ru": [
+    {
+      "name": "keyboard_shortcuts",
+      "label": "Горячие клавиши"
+    },
+    {
+      "name": "import_attributes",
+      "label": "Импорт атрибутов файлов"
+    },
+    {
+      "name": "move_files",
+      "label": "Перемещение файлов"
+    }
+  ]
+}

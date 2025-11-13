@@ -1,0 +1,38 @@
+.folder-select .dropdown-trigger {
+  border-radius: 0.25rem;
+}
+
+.folder-select .dropdown-trigger > span:after {
+  color: #555;
+}
+
+.folder-select .toggle {
+  color: #555;
+}
+
+.folder-select .toggle.collapsed::after {
+  color: #555;
+  content: "+";
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 0.1rem;
+}
+
+.folder-select i {
+  font-style: normal;
+}
+
+.folder-select .toggle.expanded::after {
+  color: #555;
+  content: "-";
+  font-size: 1.2rem;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 0.1rem;
+}
+
+.folder-select .root {
+  padding: 0px;
+  margin: 0px;
+}

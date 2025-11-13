@@ -1,0 +1,36 @@
+#!/bin/sh
+
+usage() {
+	echo "Usage: $0 [update|build]"
+	exit 1
+}
+
+path="$(dirname "$0")"
+
+[ "$#" -eq 0 ] && usage
+
+while test $# -gt 0; do
+	case "$1" in
+		update)
+			(cd "$path/../admin" \
+				&& find . -name '*.php' -a -not -path "vendor/*" -a -type f | xgettext --add-comments --copyright-holder="" --default-domain=default --from-code UTF-8 --keyword=__ --keyword=_n:1,2 --keyword=_nx:4c,1,2 --keyword=_x:1,2c --language=PHP --msgid-bugs-address=" " --no-location --package-name=admin --package-version=1.0 --sort-by-file -w 79 -o "languages/admin.pot" -f -)
+			(cd "$path/../auth" \
+				&& find . -name '*.php' -a -not -path "vendor/*" -a -type f | xgettext --add-comments --copyright-holder="" --default-domain=default --from-code UTF-8 --keyword=__ --keyword=_n:1,2 --keyword=_nx:4c,1,2 --keyword=_x:1,2c --language=PHP --msgid-bugs-address=" " --no-location --package-name=auth --package-version=1.0 --sort-by-file -w 79 -o "languages/auth.pot" -f -)
+			(cd "$path/../main" \
+				&& find . -name '*.php' -a -not -path "vendor/*" -a -type f | xgettext --add-comments --copyright-holder="" --default-domain=default --from-code UTF-8 --keyword=__ --keyword=_n:1,2 --keyword=_nx:4c,1,2 --keyword=_x:1,2c --language=PHP --msgid-bugs-address=" " --no-location --package-name=main --package-version=1.0 --sort-by-file -w 79 -o "languages/main.pot" -f -)
+			(cd "$path/../main" \
+				&& find . -name '*.js' -a -not -path "*/node_modules/*" -a -not -path "*/static/*" -a -type f | xgettext --add-comments --copyright-holder="" --default-domain=default --from-code UTF-8 --keyword=__ --keyword=_n:1,2 --keyword=_nx:4c,1,2 --keyword=_x:1,2c --language=JavaScript --msgid-bugs-address=" " --no-location --package-name=main --package-version=1.0 --sort-by-file -w 79 -o "i18n/main.pot" -f -)
+			;;
+
+		build)
+			[ -f "$path/../admin/languages/admin_ru.po" ] && msgfmt "$path/../admin/languages/admin_ru.po" -o "$path/../admin/languages/admin_ru.mo"
+			[ -f "$path/../auth/languages/auth_ru.po" ] && msgfmt "$path/../auth/languages/auth_ru.po" -o "$path/../auth/languages/auth_ru.mo"
+			[ -f "$path/../main/languages/main_ru.po" ] && msgfmt "$path/../main/languages/main_ru.po" -o "$path/../main/languages/main_ru.mo"
+			;;
+
+		*)
+			usage
+			;;
+	esac
+	shift
+done

@@ -1,0 +1,72 @@
+.tmodal.tingle-modal {
+	-webkit-backdrop-filter: blur(5px);
+	background: rgba(0, 0, 0, .6);
+	backdrop-filter: blur(5px);
+
+	font-size: 16px;
+	line-height: 24px;
+}
+
+@media(max-width: 540px) {
+	.tmodal.tingle-modal {
+		padding: 20px 0 0;
+	}
+}
+
+@media(max-width: 540px) {
+	.tmodal .tingle-modal__closeIcon {
+		margin-right: 8px;
+	}
+}
+
+@media(max-width: 540px) {
+	.tmodal .tingle-modal__close {
+		background-color: #f5afa7;
+		color: #36615d;
+		height: auto;
+		line-height: 35px;
+	}
+}
+
+.tmodal .tingle-modal__closeIcon svg {
+	-moz-transform: scale(0.6);
+	-ms-transform: scale(0.6);
+	-o-transform: scale(0.6);
+	-webkit-transform: scale(0.6);
+	transform: scale(0.6)
+}
+
+@media(max-width: 540px) {
+	.tmodal .tingle-modal__closeIcon svg {
+		-moz-transform: scale(0.5);
+		-ms-transform: scale(0.5);
+		-o-transform: scale(0.5);
+		-webkit-transform: scale(0.5);
+		transform: scale(0.5)
+	}
+}
+
+@media(max-width: 540px) {
+	.tmodal .tingle-modal__closeLabel {
+		font-size: 1rem;
+	}
+}
+
+.tmodal .tingle-modal-box__footer {
+	background-color: transparent;
+	padding: .5rem .5rem;
+}
+
+.tmodal .tingle-modal-box__footer .btn {
+	margin: 0 .5rem;
+}
+
+.tmodal .tingle-modal-box__content {
+	padding: 1rem;
+}
+
+@media(min-width: 540.02px) {
+	.tmodal .tingle-modal-box {
+		width: 530px;
+	}
+}

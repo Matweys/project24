@@ -1,0 +1,277 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: admin 1.0\n"
+"Report-Msgid-Bugs-To:  \n"
+"POT-Creation-Date: 2023-10-29 01:46+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#, php-format
+msgid "File storage has been deleted."
+msgid_plural "%d file storages have been deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#, php-format
+msgid "The invite email has been sent."
+msgid_plural "The invite emails have been sent to %d users."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Database error."
+msgstr ""
+
+msgid "Enter the name of the file storage"
+msgstr ""
+
+msgid "Enter the name of the attribute"
+msgstr ""
+
+msgid "Enter User Email"
+msgstr ""
+
+msgid "Email is too short"
+msgstr ""
+
+msgid "Email is too long"
+msgstr ""
+
+#, php-format
+msgid ""
+"The account activation message has been already sent to %s recently. Try to "
+"sent account activation message later."
+msgstr ""
+
+msgid "No mail template"
+msgstr ""
+
+msgid "Mail error"
+msgstr ""
+
+#, php-format
+msgid "User has been deleted."
+msgid_plural "%d users have been deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Enter Email."
+msgstr ""
+
+msgid "A user with this email already exists."
+msgstr ""
+
+msgid "Password is too short."
+msgstr ""
+
+msgid "Password is too weak."
+msgstr ""
+
+msgid "File Storages"
+msgstr ""
+
+msgid "Users"
+msgstr ""
+
+msgid "Log"
+msgstr ""
+
+msgid "Help"
+msgstr ""
+
+msgid "Edit Profile"
+msgstr ""
+
+msgid "Sign out"
+msgstr ""
+
+msgctxt "pager"
+msgid "Previous"
+msgstr ""
+
+msgctxt "pager"
+msgid "Next"
+msgstr ""
+
+#, php-format
+msgctxt "pager"
+msgid "%d–%d of %d"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Clear"
+msgstr ""
+
+msgid "Order by timestamp"
+msgstr ""
+
+msgid "Timestamp"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+#, php-format
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Edit File Storage"
+msgstr ""
+
+msgid "New File Storage"
+msgstr ""
+
+msgid "Attribute name"
+msgstr ""
+
+msgid "Attribute type"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Filter"
+msgstr ""
+
+msgid "Delete an attribute"
+msgstr ""
+
+msgid "Delete an attribute?"
+msgstr ""
+
+msgid "User Email"
+msgstr ""
+
+msgid "User permissions"
+msgstr ""
+
+msgid "Delete user permissions"
+msgstr ""
+
+msgid "Delete user permissions?"
+msgstr ""
+
+msgid "File Storage Name"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Attributes"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Add an attribute"
+msgstr ""
+
+msgid "Users Permissions"
+msgstr ""
+
+msgid "Send the activation email"
+msgstr ""
+
+msgid "Add User Permissions"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Delete selected File Storages"
+msgstr ""
+
+msgid "Select all"
+msgstr ""
+
+msgid "Order by ID"
+msgstr ""
+
+msgid "Order by Title"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Order by User"
+msgstr ""
+
+msgid "Order by Size"
+msgstr ""
+
+msgid "Size"
+msgstr ""
+
+msgid "Select File Storage"
+msgstr ""
+
+#, php-format
+msgid "%d storage"
+msgid_plural "%d storages"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete selected File Storages?"
+msgstr ""
+
+msgid "Select File Storages"
+msgstr ""
+
+msgid "Edit User"
+msgstr ""
+
+msgid "New User"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Full name"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Delete selected users"
+msgstr ""
+
+msgid "Order by email"
+msgstr ""
+
+msgid "Order by full name"
+msgstr ""
+
+msgid "Order by user permissions"
+msgstr ""
+
+msgid "Order by active"
+msgstr ""
+
+msgid "Select User"
+msgstr ""
+
+#, php-format
+msgid "%d user"
+msgid_plural "%d users"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Delete selected users?"
+msgstr ""
+
+msgid "Select users"
+msgstr ""

@@ -1,0 +1,21 @@
+$light: #d0d4d7;
+$link-color: #602BFB;
+$link-hover-color: #7d4aff;
+$primary-highlight: #602BFB;
+$primary: #602BFB;
+$secondary: #f0f0f0;
+$warning: #fc4430;
+
+$grid-breakpoints: (
+	xxtiny: 0,
+	xtiny: 320px,
+	tiny: 430px,
+	xs: 576px,
+	sm: 768px,
+	md: 992px,
+	lg: 1200px,
+	xl: 1440px,
+	xxl: 1600px,
+	xxxl: 1920px,
+	xxxxl: 2560px,
+) !default;

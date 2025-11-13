@@ -1,0 +1,433 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-23 01:50+0700\n"
+"PO-Revision-Date: 2021-01-12 15:51+0700\n"
+"Last-Translator: 32b100 <32b100@gmail.com>\n"
+"Language-Team: Russian\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n"
+"%100<10 || n%100>=20) ? 1 : 2;\n"
+
+msgid "File upload error"
+msgstr "Ошибка загрузки файла"
+
+msgid "File is too big"
+msgstr "Слишком большой файл"
+
+msgid "Show the PDF viewer on the file attribute edit page"
+msgstr "Показывать PDF в форме редактирования атрибутов"
+
+msgid "Number of items per page"
+msgstr "Количество элементов на странице"
+
+msgid "Database error."
+msgstr "Ошибка базы данных."
+
+msgid "Password has been changed."
+msgstr "Пароль успешно изменен."
+
+msgid "Profile has been saved."
+msgstr "Профайл сохранен."
+
+msgid "Enter filename."
+msgstr "Введите имя файла."
+
+msgid "A file with the same name already exists."
+msgstr "Файл с таким именем уже существует."
+
+msgid "Incorrect value."
+msgstr "Неверное значение."
+
+msgid "Invalid date"
+msgstr "Неверная дата"
+
+msgid "Incorrect value"
+msgstr "Неверное значение"
+
+msgid "Enter folder name."
+msgstr "Введите имя каталога."
+
+msgid "No permission to upload files."
+msgstr "Нет прав для загрузки файлов."
+
+#, php-format
+msgid "The file %s already exists."
+msgstr "Файл %s уже существует."
+
+msgid "No permission to delete files."
+msgstr "Нет прав для удаления файлов."
+
+#, php-format
+msgid "File has been deleted."
+msgid_plural "%d files have been deleted."
+msgstr[0] "%d файл удален."
+msgstr[1] "%d файла удалено."
+msgstr[2] "%d файлов удалено."
+msgstr[3] "Файл удален."
+
+msgid "Filename"
+msgstr "Имя файла"
+
+msgid "No permission."
+msgstr "Нет прав."
+
+msgid "File upload error."
+msgstr "Ошибка загрузки файла."
+
+msgid "Wrong file type. Allowed only CSV and XLSX files."
+msgstr "Неверный тип файла. Можно загружать только CSV или XLSX файлы."
+
+msgid "Select file for import attributes."
+msgstr "Выберите файл для импорта атрибутов."
+
+msgid "Enter CSV delimiter."
+msgstr "Введите разделитель полей CSV-файла."
+
+msgid "Select match of the columns to the attributes of the File Storage."
+msgstr "Выберите соответствие столбцов атрибутам хранилища файлов."
+
+msgid "Failed to import attributes."
+msgstr "Не удалось импортировать атрибуты"
+
+#, php-format
+msgid ""
+"Import completed successfully. Total rows processed: %d. Affected file "
+"records: %d. Attributes with errors: %d."
+msgstr ""
+"Импорт успешно выполнен. Обработано строк загруженного файла: %d. Изменено записей о файлах: %d. "
+"Атрибуты с ошибками: %d."
+
+msgid "No permission to move files."
+msgstr "Нет прав на перенос файлов."
+
+#, php-format
+msgid "The file or folder %s already exists in destination folder."
+msgstr ""
+
+#, php-format
+msgid "File has been moved."
+msgid_plural "%d files have been moved."
+msgstr[0] "%d файл перенесен."
+msgstr[1] "%d файла перенесено."
+msgstr[2] "%d файлов перенесено."
+msgstr[3] "Файл перенесен."
+
+msgid "Enter User Email."
+msgstr "Введите Email пользователя."
+
+msgid "Email is too short."
+msgstr "Email слишком короткий."
+
+msgid "Email is too long."
+msgstr "Email слишком длинный."
+
+#, php-format
+msgid "The invite email has been sent."
+msgid_plural "The invite emails have been sent to %d users."
+msgstr[0] "Приглашения отправлены на email %d пользователю."
+msgstr[1] "Приглашения отправлены на email %d пользователям."
+msgstr[2] "Приглашения отправлены на email %d пользователям."
+msgstr[3] "Приглашение отправлено пользователю на email."
+
+msgid "Enter the name of the file storage"
+msgstr "Введите название хранилища файлов"
+
+msgid "Enter the name of the attribute"
+msgstr "Введите название атрибута"
+
+#, php-format
+msgid ""
+"The account activation message has been already sent to %s recently. Try to "
+"sent account activation message later."
+msgstr ""
+"На адрес %s недавно уже было отправлено сообщение. Попробуйте отправить сообщение активации учетной "
+"записи позднее."
+
+msgid "No mail template"
+msgstr "Ошибка почтового шаблона"
+
+msgid "Mail error"
+msgstr "Ошибка отправки email"
+
+msgid "from"
+msgstr "от"
+
+msgid "to"
+msgstr "до"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Save changes?"
+msgstr "Сохранить изменения?"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Delete file"
+msgstr "Удалить файл"
+
+msgid "Delete file?"
+msgstr "Удалить файл?"
+
+msgid "Save and go to next file"
+msgstr "Сохранить и к следующему"
+
+msgid "Save and go to next file (Ctrl-Shift-S)"
+msgstr "Сохранить и перейти к следующему файлу (Ctrl-Shift-S)"
+
+msgid "Edit file attributes"
+msgstr "Редактировать информацию о файле"
+
+msgid "Rename folder"
+msgstr "Переименовать каталог"
+
+msgid "Select file"
+msgstr "Выделить файл"
+
+msgid "Select all"
+msgstr "Выбрать все"
+
+msgid "Order by filename"
+msgstr "Сортировать по имени файла"
+
+#, php-format
+msgid "Order by %s"
+msgstr "Сортировать по %s"
+
+msgid "File Storages"
+msgstr "Хранилища файлов"
+
+msgid "Users"
+msgstr "Пользователи"
+
+msgid "Log"
+msgstr "Журнал действий"
+
+msgid "Edit Profile"
+msgstr "Редактировать профайл"
+
+msgid "Sign out"
+msgstr "Выйти"
+
+msgctxt "pager"
+msgid "Previous"
+msgstr "Предыдущая"
+
+msgctxt "pager"
+msgid "Next"
+msgstr "Следующая"
+
+#, php-format
+msgctxt "pager"
+msgid "%d–%d of %d"
+msgstr "%d–%d из %d"
+
+msgid "Search results"
+msgstr "Результаты поиска"
+
+msgctxt "file_form"
+msgid "Previous (Ctrl-Alt-Left arrow)"
+msgstr "Предыдущий (Ctrl-Alt-стрелка влево)"
+
+msgctxt "file_form"
+msgid "Previous (Ctrl-Alt-Right arrow)"
+msgstr "Следующий (Ctrl-Alt-Стрелка вправо)"
+
+msgid "← Back"
+msgstr "← Вернуться"
+
+msgid "Help"
+msgstr "Справка"
+
+msgid "New folder"
+msgstr "Новый каталог"
+
+msgid "Upload"
+msgstr "Загрузить"
+
+msgid "Download"
+msgstr "Скачать"
+
+msgid "Import file attributes"
+msgstr "Импорт атрибутов файлов"
+
+msgid "Export file attributes to xlsx"
+msgstr "Сохранить атрибуты файлов в xlsx"
+
+msgid "Show items as list or icons"
+msgstr "Отображать элементы в виде списка или иконок"
+
+msgid "as Icons"
+msgstr "Иконки"
+
+msgid "as List"
+msgstr "Список"
+
+msgid "Change the sort"
+msgstr "Изменить сортировку"
+
+msgid "File Storage Settings"
+msgstr "Настройки хранилища"
+
+msgid "File Storage Log"
+msgstr "Журнал действий с хранилищем"
+
+msgid "Delete selected files"
+msgstr "Удалить выбранные файлы"
+
+msgid "Move selected files"
+msgstr "Переместить выбранные файлы"
+
+msgid "Cancel uploading"
+msgstr "Отменить загрузку"
+
+msgid "Search"
+msgstr "Поиск"
+
+#, php-format
+msgid "%d item"
+msgid_plural "%d items"
+msgstr[0] "%d элемент"
+msgstr[1] "%d элемента"
+msgstr[2] "%d элементов"
+msgstr[3] "1 элемент"
+
+msgid "Folder name"
+msgstr "Имя каталога"
+
+msgid "Create folder"
+msgstr "Создать каталог"
+
+msgid "Import files attributes"
+msgstr "Импорт атрибутов файлов"
+
+msgid "Select CSV or XLSX file to import attributes"
+msgstr "Выберите CSV или XLSX файл для импорта атрибутов"
+
+msgid "CSV field delimiter"
+msgstr "Разделитель полей CSV-файла"
+
+msgid "Upload file to import attributes"
+msgstr "Загрузите файл для импорта атрибутов"
+
+msgid "Select a storage attribute match"
+msgstr "Выберите атрибут хранилища для соответствия"
+
+msgid ""
+"Search for file matches using a base filename instead of a full filename"
+msgstr "Использовать имя файла без пути для поиска соответствий имени файла"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Archivarius. Page not found"
+msgstr "Архивариус. Страница не найдена"
+
+msgid "Page not found"
+msgstr "Страница не найдена"
+
+msgid "Archivarius"
+msgstr "Архивариус"
+
+msgid "Language"
+msgstr "Язык"
+
+msgid "Full name"
+msgstr "Имя, фамилия"
+
+msgid ""
+"To change your password, enter your current and new password. Current "
+"password"
+msgstr "Чтобы изменить пароль от вашей учетной записи, введите текущий и новый пароль. Текущий пароль"
+
+msgid "New password"
+msgstr "Новый пароль"
+
+#, php-format
+msgid "About %d result."
+msgid_plural "About %d results."
+msgstr[0] "Примерно %d результат."
+msgstr[1] "Примерно %d результата."
+msgstr[2] "Примерно %d результатов."
+msgstr[3] "Примерно %d результат."
+
+msgid "Storage log"
+msgstr "Журнал действий с хранилищем"
+
+msgid "Order by timestamp"
+msgstr "Сортировать по дате и времени"
+
+msgid "Timestamp"
+msgstr "Дата и время"
+
+msgid "Message"
+msgstr "Сообщение"
+
+#, php-format
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] "%d сообщение"
+msgstr[1] "%d сообщения"
+msgstr[2] "%d сообщений"
+msgstr[3] "одно сообщение"
+
+msgid "File storage permissions"
+msgstr "Права доступа к хранилищу файлов"
+
+msgid "User Email"
+msgstr "Email пользователя"
+
+msgid "User permissions"
+msgstr "Права доступа"
+
+msgid "Delete user permissions"
+msgstr "Удалить права доступа пользователя"
+
+msgid "Delete user permissions?"
+msgstr "Удалить права доступа пользователя?"
+
+#, php-format
+msgid "Users permissions for %s"
+msgstr "Права пользователей для «%s»"
+
+msgid "Send the activation email"
+msgstr "Оправить email активации"
+
+msgid "Add User Permissions"
+msgstr "Добавить права пользователя"
+
+msgid "Attribute name"
+msgstr "Название атрибута"
+
+msgid "Attribute type"
+msgstr "Тип атрибута"
+
+msgid "Sort"
+msgstr "Сортировка"
+
+msgid "Filter"
+msgstr "Фильтр"
+
+msgid "Delete an attribute"
+msgstr "Удалить атрибут"
+
+msgid "Delete an attribute?"
+msgstr "Удалить атрибут?"
+
+msgid "File Storage Name"
+msgstr "Название хранилища файлов"
+
+msgid "Attributes"
+msgstr "Атрибуты"
+
+msgid "Add an attribute"
+msgstr "Добавить атрибут"

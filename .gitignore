@@ -1,0 +1,26 @@
+/*.sql
+/*.sql.gz
+/config/*.php
+!/config/*.sample
+/debian/
+/vendor/
+node_modules/
+public/static/storage/
+
+.*
+!.editorconfig
+!.gitattributes
+!.gitignore
+
+# Резервные копии
+*.bak
+*_restore
+*_backup
+
+# Временные файлы
+*.tmp
+*.log
+
+# Системные файлы
+.DS_Store
+Thumbs.db

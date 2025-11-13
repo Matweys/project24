@@ -1,0 +1,31 @@
+html {
+	-ms-overflow-style: scrollbar;
+	-ms-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+	-webkit-text-size-adjust: 100%;
+	font-family: sans-serif;
+	line-height: 1.15;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+@-ms-viewport {
+	width: device-width;
+}
+
+a {
+	background-color: transparent;
+}
+
+body {
+	color: #000;
+	margin: 0;
+}
+
+img {
+	border: 0;
+}

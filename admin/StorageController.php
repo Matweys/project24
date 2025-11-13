@@ -1,0 +1,590 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Admin;
+
+use Helpers\Form;
+
+class StorageController extends BaseController
+{
+    protected $default_url;
+
+    public function action()
+    {
+        $this->current_user = $this->auth->rolesRequired(['admin', 'storage_management']);
+
+        $this->default_url = $this->config['base_url'].'/storages/';
+        $this->StorageFileTable = new StorageFileTable($this->db);
+        $this->Storage = new Storage($this->db);
+        $this->User = new User($this->db, $this->config);
+
+        $this->lang = $this->language->getCurrentLanguage($this->current_user['id']);
+        $this->load_translation($this->lang['name'] ?? null);
+        $this->setting->load($this->lang['name'] ?? null, ['admin_autoload', 'autoload']);
+
+        $return_url = get_redirect_target() ?: $this->default_url;
+
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $ids = $id ? [(int) $id] : filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT, FILTER_REQUIRE_ARRAY);
+
+        if (isset($_SERVER['REQUEST_METHOD']) && 'POST' == $_SERVER['REQUEST_METHOD']) {
+            if (($_POST['action'] ?? null) === 'action_delete') {
+                try {
+                    if ($ids) {
+                        foreach ($ids as $storage_id) {
+                            try {
+                                $r = $this->db->prepare("insert into gue_jobs (job_id, args, created_at, job_type, priority, queue, run_at, updated_at) values (?, ?, current_timestamp, 'delete_storage', 10, 'queue', current_timestamp, current_timestamp)");
+
+                                $r->execute([
+                                    \PgIto\FastUlid\FastUlid::gen(),
+                                    json_encode(
+                                        [
+                                            'storage_id' => $storage_id,
+                                            'user_id' => $this->current_user['id'],
+                                        ],
+                                        JSON_UNESCAPED_UNICODE
+                                    ),
+                                ]);
+                            } catch (\PDOException $e) {
+                                error_log((string) $e);
+                            }
+                        }
+
+                        if ($ids) {
+                            flash(sprintf(_n('File storage has been deleted.', '%d file storages have been deleted.', count($ids)), count($ids)));
+                        }
+                    }
+                } catch (ElseException $e) {
+                }
+            }
+        }
+
+        header('Location: '.$return_url);
+    }
+
+    public function create()
+    {
+        $this->current_user = $this->auth->rolesRequired(['admin', 'storage_management']);
+
+        $this->default_url = $this->config['base_url'].'/storages/';
+        $this->StorageFileTable = new StorageFileTable($this->db);
+        $this->Storage = new Storage($this->db);
+        $this->User = new User($this->db, $this->config);
+
+        $this->lang = $this->language->getCurrentLanguage($this->current_user['id']);
+        $this->load_translation($this->lang['name'] ?? null);
+        $this->setting->load($this->lang['name'] ?? null, ['admin_autoload', 'autoload']);
+        $this->storages = $this->Storage->getAllowedStorages($this->current_user['id']);
+
+        $return_url = get_redirect_target() ?: $this->default_url;
+
+        $form_errors = [];
+
+        $data = self::filterInput();
+
+        if (isset($_SERVER['REQUEST_METHOD']) && 'POST' == $_SERVER['REQUEST_METHOD']) {
+            $this->form_validate($data, $form_errors);
+
+            if (!$form_errors) {
+                try {
+                    $this->db->beginTransaction();
+
+                    $r = $this->db->prepare(
+                        'INSERT INTO storage (
+    description,
+    title,
+    uid
+)
+VALUES (
+    :description,
+    :title,
+    :uid
+)'
+                    );
+
+                    $r->execute([
+                        ':description' => $data['description'],
+                        ':title' => $data['title'],
+                        ':uid' => generate_random_string(10),
+                    ]);
+
+                    $id = $this->db->lastInsertId('storage_id_seq');
+
+                    $this->Storage->updateAttributes(
+                        (int) $id,
+                        $data['attributes']
+                    );
+
+                    $errors = [];
+                    $invite_count = 0;
+
+                    if (is_array($data['user_permissions'])) {
+                        foreach ($data['user_permissions'] as $v) {
+                            $r = $this->User->register($v['email'], $v['activate'], $this->lang['name'] ?? null);
+
+                            if (true === $r) {
+                                ++$invite_count;
+                            } elseif ($r) {
+                                $errors[] = $r;
+                            }
+                        }
+                    }
+
+                    $errors = array_filter($errors);
+                    if ($errors) {
+                        flash(implode('<br>', $errors), 'error');
+                    } elseif ($invite_count) {
+                        flash(sprintf(_n('The invite email has been sent.', 'The invite emails have been sent to %d users.', $invite_count), $invite_count));
+                    }
+
+                    $this->Storage->updateUserPermissions(
+                        (int) $id,
+                        is_array($data['user_permissions']) ? array_map(function ($v) {
+                            $v['permission_id'] = $v['permission'];
+                            return $v;
+                        }, array_filter($data['user_permissions'], function ($v) {
+                            return empty($v['del']);
+                        })) : null
+                    );
+
+                    $this->db->commit();
+
+                    $this->StorageFileTable->createFileTable($id);
+
+                    if (!empty($this->config['storage_log'])) {
+                        StorageLog::storage_config(
+                            db: $this->db,
+                            storage_id: (int) $id,
+                            user: $this->current_user,
+                        );
+                    }
+                } catch (PDOException $e) {
+                    flash(__('Database error.'), 'error');
+                    error_log((string) $e);
+                    $this->db->rollBack();
+                }
+
+                try {
+                    (new StorageSearch($this->db, new Cache($this->db, $this->config)))->rebuild_index((int) $id);
+                } catch (\PDOException $e) {
+                    error_log((string) $e);
+                }
+
+                header('Location: '.$return_url);
+                return;
+            }
+        }
+
+        render_template(
+            'storage_form',
+            [
+                'config' => &$this->config,
+                'current_user' => &$this->current_user,
+                'storages' => &$this->storages,
+
+                'active_item' => $this->default_url,
+                'form_data' => static::getFormData([
+                    'active' => 1,
+                ]),
+                'form_errors' => $form_errors,
+                'lang' => $this->lang['name'] ?? null,
+                'languages' => $this->language->getLanguages(),
+                'return_url' => $return_url,
+                'view' => $this->setting->getByGroups(['admin_view', 'view'], $this->lang['name'] ?? null),
+                'widget_data' => [
+                    'attribute_types' => $this->Storage->getAttributeTypes($this->lang['name'] ?? null),
+                    'storage_permissions' => $this->Storage->getStoragePermissions($this->lang['name'] ?? null),
+                ],
+            ],
+            __DIR__.'/templates/'
+        );
+    }
+
+    public function edit()
+    {
+        $this->current_user = $this->auth->rolesRequired(['admin', 'storage_management']);
+
+        $this->default_url = $this->config['base_url'].'/storages/';
+        $this->StorageFileTable = new StorageFileTable($this->db);
+        $this->Storage = new Storage($this->db);
+        $this->User = new User($this->db, $this->config);
+
+        $this->lang = $this->language->getCurrentLanguage($this->current_user['id']);
+        $this->load_translation($this->lang['name'] ?? null);
+        $this->setting->load($this->lang['name'] ?? null, ['admin_autoload', 'autoload']);
+        $this->storages = $this->Storage->getAllowedStorages($this->current_user['id']);
+
+        $return_url = get_redirect_target() ?: $this->default_url;
+
+        $id = (int) ($_GET['id'] ?? 0);
+
+        $storage_data = null;
+
+        if ($id) {
+            try {
+                $r = $this->db->prepare('SELECT * FROM storage WHERE id = ?');
+                $r->execute([$id]);
+                $storage_data = $r->fetch(\PDO::FETCH_ASSOC);
+
+                if ($storage_data) {
+                    $storage_data['attributes'] = $this->Storage->getAttributes($id);
+                    $storage_data['user_permissions'] = $this->Storage->getUserPermissions($id, $this->lang['name'] ?? null);
+                }
+            } catch (PDOException $e) {
+                flash(__('Database error.'), 'error');
+                error_log((string) $e);
+                header('Location: '.$return_url);
+                return;
+            }
+        }
+
+        if (!$storage_data) {
+            http_response_code(404);
+            return;
+        }
+
+        $form_errors = [];
+
+        $data = self::filterInput();
+
+        if (isset($_SERVER['REQUEST_METHOD']) && 'POST' == $_SERVER['REQUEST_METHOD']) {
+            $this->form_validate($data, $form_errors, $id);
+
+            if (!$form_errors) {
+                try {
+                    $this->db->beginTransaction();
+
+                    $r = $this->db->prepare(
+                        'UPDATE storage
+SET
+    description = :description,
+    modified = NOW(),
+    title = :title
+WHERE id = :id'
+                    );
+                    $r->execute([
+                        ':description' => $data['description'],
+                        ':id' => $id,
+                        ':title' => $data['title'],
+                    ]);
+
+                    $this->Storage->updateAttributes(
+                        (int) $id,
+                        $data['attributes']
+                    );
+
+                    $errors = [];
+                    $invite_count = 0;
+
+                    if (is_array($data['user_permissions'])) {
+                        foreach ($data['user_permissions'] as $v) {
+                            $r = $this->User->register($v['email'], $v['activate'], $this->lang['name'] ?? null);
+
+                            if (true === $r) {
+                                ++$invite_count;
+                            } elseif ($r) {
+                                $errors[] = $r;
+                            }
+                        }
+                    }
+
+                    $errors = array_filter($errors);
+                    if ($errors) {
+                        flash(implode('<br>', $errors), 'error');
+                    } elseif ($invite_count) {
+                        flash(sprintf(_n('The invite email has been sent.', 'The invite emails have been sent to %d users.', $invite_count), $invite_count));
+                    }
+
+                    $this->Storage->updateUserPermissions(
+                        (int) $id,
+                        is_array($data['user_permissions']) ? array_map(function ($v) {
+                            $v['permission_id'] = $v['permission'];
+                            return $v;
+                        }, array_filter($data['user_permissions'], function ($v) {
+                            return empty($v['del']);
+                        })) : null
+                    );
+
+                    $this->db->commit();
+
+                    $this->StorageFileTable->createFileTable($id);
+
+                    if (!empty($this->config['storage_log'])) {
+                        StorageLog::storage_config(
+                            db: $this->db,
+                            storage_id: (int) $id,
+                            user: $this->current_user,
+                        );
+                    }
+                } catch (PDOException $e) {
+                    flash(__('Database error.'), 'error');
+                    error_log((string) $e);
+                    $this->db->rollBack();
+                }
+
+                try {
+                    (new StorageSearch($this->db, new Cache($this->db, $this->config)))->rebuild_index((int) $id);
+                } catch (\PDOException $e) {
+                    error_log((string) $e);
+                }
+
+                header('Location: '.$return_url);
+                return;
+            }
+        }
+
+        render_template(
+            'storage_form',
+            [
+                'config' => &$this->config,
+                'current_user' => &$this->current_user,
+                'storages' => &$this->storages,
+
+                'active_item' => $this->default_url,
+                'data' => $storage_data,
+                'form_data' => self::getFormData($storage_data),
+                'form_errors' => $form_errors,
+                'lang' => $this->lang['name'] ?? null,
+                'languages' => $this->language->getLanguages(),
+                'return_url' => $return_url,
+                'view' => $this->setting->getByGroups(['admin_view', 'view'], $this->lang['name'] ?? null),
+                'widget_data' => [
+                    'attribute_types' => $this->Storage->getAttributeTypes($this->lang['name'] ?? null),
+                    'storage_permissions' => $this->Storage->getStoragePermissions($this->lang['name'] ?? null),
+                ],
+            ],
+            __DIR__.'/templates/'
+        );
+    }
+
+    public function index()
+    {
+        $this->current_user = $this->auth->rolesRequired(['admin', 'storage_management']);
+
+        $this->default_url = $this->config['base_url'].'/storages/';
+        $this->StorageFileTable = new StorageFileTable($this->db);
+        $this->Storage = new Storage($this->db);
+        $this->User = new User($this->db, $this->config);
+
+        $this->lang = $this->language->getCurrentLanguage($this->current_user['id']);
+        $this->load_translation($this->lang['name'] ?? null);
+        $this->setting->load($this->lang['name'] ?? null, ['admin_autoload', 'autoload']);
+        $this->storages = $this->Storage->getAllowedStorages($this->current_user['id']);
+
+        $page = (int) ($_GET['p'] ?? 0);
+        $page_size = (int) ($this->current_user['settings']['page_size'] ?? 0);
+        $search_query = (string) ($_GET['q'] ?? '');
+        $sort_desc = (int) ($_GET['desc'] ?? 0);
+        $sort_idx = (int) ($_GET['sort'] ?? 0);
+
+        if ($search_query) {
+            $search_query = mb_substr($search_query, 0, 200);
+        }
+
+        if ($search_query) {
+            $r = $this->db->prepare("SELECT COUNT(id) FROM storage WHERE search @@ plainto_tsquery('russian', ?)");
+            $r->execute([$search_query]);
+        } else {
+            $r = $this->db->prepare('SELECT COUNT(id) FROM storage');
+            $r->execute();
+        }
+
+        $count = $r->fetchColumn();
+
+        $num_pages = $page_size ? ceil($count / $page_size) : 0;
+        $offset = (int) max(0, min($page, $num_pages - 1) * $page_size);
+
+        $sort_fields = [
+            ['id', 'id DESC'],
+            ['title', 'title DESC'],
+            ['permissions.emails', 'permissions.emails DESC'],
+            ['size', 'size DESC'],
+        ];
+
+        $sort_by = isset($sort_fields[$sort_idx]) ? $sort_fields[$sort_idx][(int) ((bool) $sort_desc)] : ($search_query ? "ts_rank(search, plainto_tsquery('russian', :search)) DESC" : 'id');
+
+        $r = $this->db->prepare(
+            "SELECT *, permissions.emails AS users
+FROM storage
+LEFT JOIN (
+    SELECT m.storage_id, STRING_AGG(u.email, ', ' ORDER BY u.email) AS emails
+    FROM storage_user_permission m, public.user u
+    WHERE u.id = m.user_id
+    GROUP BY m.storage_id
+) permissions ON permissions.storage_id = storage.id
+".($search_query ? "WHERE search @@ plainto_tsquery('russian', :search)" : '')."
+ORDER BY {$sort_by}
+LIMIT :limit OFFSET :offset"
+        );
+
+        if ($search_query) {
+            pdo_bind_param($r, ':search', $search_query);
+        }
+
+        pdo_bind($r, [
+            ':limit' => $page_size,
+            ':offset' => $offset,
+        ]);
+
+        $r->execute();
+        $data = $r->fetchAll(\PDO::FETCH_ASSOC);
+
+        $pager_url = function ($p) use ($search_query, $sort_desc, $sort_idx) {
+            return (function () {
+                $v = $_SERVER['REQUEST_URI'] ?? '';
+                if (($p = strpos($v, '?')) !== false) {
+                    $v = substr($v, 0, $p);
+                }
+                return $v;
+            })().'?'.http_build_query([
+                'desc' => $sort_desc ? 1 : null,
+                'p' => $p ?: null,
+                'q' => $search_query,
+                'sort' => $sort_idx,
+            ]);
+        };
+
+        $sort_url = function ($column, $invert = false) use ($page, $search_query, $sort_desc) {
+            return (function () {
+                $v = $_SERVER['REQUEST_URI'] ?? '';
+                if (($p = strpos($v, '?')) !== false) {
+                    $v = substr($v, 0, $p);
+                }
+                return $v;
+            })().'?'.http_build_query([
+                'desc' => ($invert && !$sort_desc) ? 1 : null,
+                'p' => $page ?: null,
+                'q' => $search_query,
+                'sort' => $column,
+            ]);
+        };
+
+        render_template(
+            'storages',
+            [
+                'config' => &$this->config,
+                'current_user' => &$this->current_user,
+                'storages' => &$this->storages,
+
+                'clear_search_url' => (function () {
+                    $v = $_SERVER['REQUEST_URI'] ?? '';
+                    if (($p = strpos($v, '?')) !== false) {
+                        $v = substr($v, 0, $p);
+                    }
+                    return $v;
+                })().'?'.http_build_query([
+                    'desc' => $sort_desc ? 1 : null,
+                    'p' => $page ?: null,
+                    'q' => null,
+                    'sort' => $sort_idx,
+                ]),
+                'count' => $count,
+                'data' => $data,
+                'lang' => $this->lang['name'] ?? null,
+                'languages' => $this->language->getLanguages(),
+                'page' => $page,
+                'page_size' => $page_size,
+                'pager_url' => $pager_url,
+                'return_url' => (function () {
+                    $v = $_SERVER['REQUEST_URI'] ?? '';
+                    if (($p = strpos($v, '?')) !== false) {
+                        $v = substr($v, 0, $p);
+                    }
+                    return $v;
+                })().'?'.http_build_query([
+                    'desc' => $sort_desc ? 1 : null,
+                    'p' => $page ?: null,
+                    'q' => $search_query,
+                    'sort' => $sort_idx,
+                ]),
+                'search_query' => $search_query,
+                'view' => $this->setting->getByGroups(['admin_view', 'view'], $this->lang['name'] ?? null),
+                'sort_desc' => $sort_desc,
+                'sort' => $sort_idx,
+                'sort_url' => $sort_url,
+            ],
+            __DIR__.'/templates/'
+        );
+    }
+
+    protected function form_validate(&$data, &$form_errors, $id = null)
+    {
+        if (empty($data['title'])) {
+            $form_errors['title'] = __('Enter the name of the file storage');
+        }
+
+        if (!empty($data['attributes']) && is_array($data['attributes'])) {
+            foreach ($data['attributes'] as $i => $v) {
+                if (!empty($v['del'])) {
+                    continue;
+                }
+
+                if (empty($v['title'])) {
+                    $form_errors[sprintf('attributes-%d-title', $i)] = __('Enter the name of the attribute');
+                }
+            }
+        }
+
+        if (!empty($data['user_permissions']) && is_array($data['user_permissions'])) {
+            foreach ($data['user_permissions'] as $i => $v) {
+                if (empty($v['email'])) {
+                    $form_errors[sprintf('user_permissions-%d-email', $i)] = __('Enter User Email');
+                } elseif (strlen($v['email']) < (int) $this->config['auth']['verify_email_min_length']) {
+                    $form_errors[sprintf('user_permissions-%d-email', $i)] = __('Email is too short');
+                } elseif (strlen($v['email']) > (int) $this->config['auth']['verify_email_max_length']) {
+                    $form_errors[sprintf('user_permissions-%d-email', $i)] = __('Email is too long');
+                }
+            }
+        }
+    }
+
+    protected static function getFormData($v)
+    {
+        $rv = Form::getFormData([
+            'description',
+            'title',
+        ], $v);
+
+        $rv['attributes'] = Form::getInlineFormData('attributes', [
+            'filter',
+            'sort',
+            'title',
+            'type',
+        ], $v);
+
+        $rv['user_permissions'] = Form::getInlineFormData('user_permissions', [
+            'email',
+            'isactive',
+            'permission',
+        ], $v);
+
+        return $rv;
+    }
+
+    protected static function filterInput()
+    {
+        $rv = Form::filterInput([
+            'description' => null,
+            'title' => null,
+        ]);
+
+        $rv['attributes'] = Form::filterInlineFormInput('attributes', [
+            'del' => FILTER_VALIDATE_BOOLEAN,
+            'filter' => FILTER_VALIDATE_BOOLEAN,
+            'id' => FILTER_VALIDATE_INT,
+            'sort' => FILTER_VALIDATE_INT,
+            'title' => null,
+            'type' => FILTER_VALIDATE_INT,
+        ]);
+
+        $rv['user_permissions'] = Form::filterInlineFormInput('user_permissions', [
+            'activate' => FILTER_VALIDATE_BOOLEAN,
+            'del' => FILTER_VALIDATE_BOOLEAN,
+            'email' => null,
+            'permission' => FILTER_VALIDATE_INT,
+        ]);
+
+        return $rv;
+    }
+}

@@ -1,0 +1,30 @@
+.upload-dropzone {
+	border: 3px dashed #aaa;
+	clear: both;
+	color: #555;
+	padding: 1em;
+	text-align: center;
+	z-index: 10000;
+}
+
+.upload-hover {
+	background-color: rgba(0,0,0,.6);
+	color: #fff !important;
+
+	a {
+		color: #fff !important;
+	}
+}
+
+.upload-progress {
+	background-color: #e9ecef;
+	display: -ms-flexbox;
+	display: flex;
+	height: 3px;
+	margin: 0 0 1rem;
+
+	div {
+		background-color: $primary;
+		transition: width 0.6s ease;
+	}
+}

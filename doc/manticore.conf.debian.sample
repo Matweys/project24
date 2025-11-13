@@ -1,0 +1,135 @@
+#!/usr/bin/env php
+<?php
+
+$db = new PDO('pgsql:dbname=;user=;password=');
+
+$r_attributes = $db->prepare('select storage_attribute.*, t.name as type_name
+from storage_attribute
+left join storage_attribute_type t on t.id = storage_attribute.type_id
+where storage_id = ?');
+
+$r_storage = $db->prepare('select * from storage');
+$r_storage->execute();
+
+while ($storage = $r_storage->fetch(\PDO::FETCH_ASSOC)) {
+    $r_attributes->execute([$storage['id']]);
+    $attributes = $r_attributes->fetchAll(\PDO::FETCH_ASSOC);
+
+    ?>
+source file_<?php echo $storage['id']; ?>_filter {
+    type = pgsql
+    sql_db =
+    sql_host =
+    sql_pass =
+    sql_user =
+
+    sql_query = select id, name, coalesce(parent_id, 0) as parent_id<?php echo is_array($attributes) && $attributes ? ',' . implode(',', array_map(function ($v) {
+        switch ($v['type_name'] ?? '') {
+            case 'integer':
+                return sprintf('coalesce(a%1$d, 0) as a%1$d', $v['id']);
+            case 'date':
+            case 'datetime':
+                return sprintf('extract(epoch from a%1$d) as a%1$d_ts', $v['id']);
+        }
+        return 'a' . $v['id'];
+    }, $attributes)) : ''; ?> from file_<?php echo $storage['id']; ?> where id >= $start and id <= $end and folder is not true
+    sql_query_range = select min(id), max(id) from file_<?php echo $storage['id']; ?>
+
+    sql_range_step = 1000
+sql_attr_bigint = parent_id
+<?php
+
+    foreach ($attributes as $v) {
+        $fieldname = 'a' . $v['id'];
+
+        switch ($v['type_name'] ?? '') {
+            case 'date':
+            case 'datetime':
+                printf("sql_attr_timestamp = %s_ts\n", $fieldname);
+                break;
+            case 'float':
+                printf("sql_attr_float = %s\n", $fieldname);
+                break;
+            case 'integer':
+                printf("sql_attr_bigint = %s\n", $fieldname);
+                break;
+        }
+    }
+    ?>
+}
+source file_<?php echo $storage['id']; ?>_main {
+    type = pgsql
+    sql_db =
+    sql_host =
+    sql_pass =
+    sql_user =
+
+    sql_query = select id, name, text, coalesce(parent_id, 0) as parent_id<?php echo is_array($attributes) && $attributes ? ',' . implode(',', array_map(function ($v) {
+        switch ($v['type_name'] ?? '') {
+            case 'integer':
+                return sprintf('coalesce(a%1$d, 0) as a%1$d', $v['id']);
+            case 'date':
+            case 'datetime':
+                return sprintf('extract(epoch from a%1$d) as a%1$d_ts', $v['id']);
+        }
+        return 'a' . $v['id'];
+    }, $attributes)) : ''; ?> from file_<?php echo $storage['id']; ?> where id >= $start and id <= $end and folder is not true
+    sql_query_range = select min(id), max(id) from file_<?php echo $storage['id']; ?>
+
+    sql_range_step = 1000
+sql_attr_bigint = parent_id
+<?php
+
+    foreach ($attributes as $v) {
+        $fieldname = 'a' . $v['id'];
+
+        switch ($v['type_name'] ?? '') {
+            case 'date':
+            case 'datetime':
+                printf("sql_attr_timestamp = %s_ts\n", $fieldname);
+                break;
+            case 'float':
+                printf("sql_attr_float = %s\n", $fieldname);
+                break;
+            case 'integer':
+                printf("sql_attr_bigint = %s\n", $fieldname);
+                break;
+        }
+    }
+    ?>
+}
+index file_<?php echo $storage['id']; ?>_filter {
+    source = file_<?php echo $storage['id']; ?>_filter
+    dict = keywords
+    expand_keywords = 1
+    index_exact_words = 1
+    min_prefix_len = 2
+    min_word_len = 1
+    morphology = stem_en, stem_ru
+    path = /var/lib/manticore/data/file_<?php echo $storage['id']; ?>_filter
+}
+index file_<?php echo $storage['id']; ?>_main {
+    source = file_<?php echo $storage['id']; ?>_main
+    dict = keywords
+    expand_keywords = 1
+    index_exact_words = 1
+    min_prefix_len = 2
+    min_word_len = 1
+    morphology = stem_en, stem_ru
+    path = /var/lib/manticore/data/file_<?php echo $storage['id']; ?>_main
+    stopwords = /usr/share/manticore/stopwords/en /usr/share/manticore/stopwords/ru
+}
+<?php
+}
+?>
+searchd {
+    #query_log = /var/log/manticore/query.log
+    binlog_path = /var/lib/manticore/binlog
+    client_timeout = 300
+    listen = /run/manticore/manticore.sock:mysql
+    log = /var/log/manticore/searchd.log
+    persistent_connections_limit = 30
+    pid_file = /run/manticore/searchd.pid
+    query_log_format = sphinxql
+    telemetry = 0
+}

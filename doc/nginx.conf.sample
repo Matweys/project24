@@ -1,0 +1,75 @@
+limit_conn_zone $binary_remote_addr zone=domain:10m;
+limit_req_zone $binary_remote_addr zone=domain_req:10m rate=2r/s;
+
+server {
+	listen 80;
+	listen [::]:80;
+	server_name domain.tld;
+
+	client_header_timeout 1200;
+	error_page 401 /access_denied.html;
+	error_page 403 /access_denied.html;
+	error_page 404 /not_found.html;
+	error_page 500 501 503 502 503 504 /error.html;
+	index index.php index.html;
+	limit_conn domain 50;
+	root /path_to/public;
+
+	location / {
+		limit_except GET POST { deny all; }
+		limit_req zone=domain_req burst=10 nodelay;
+		try_files $uri $uri/ /index.php?$args;
+	}
+
+	location = /access_denied.html { internal; }
+	location = /error.html { internal; ssi on; }
+	location = /favicon.ico { return 204; }
+	location = /not_found.html { internal; }
+
+	location /download_auth.php {
+		internal;
+		fastcgi_pass_request_body off;
+	}
+
+	location /static {
+		add_header Cache-Control public;
+		aio threads;
+		expires 31d;
+		limit_except GET { deny all; }
+	}
+
+	location /static/storage {
+		add_header Cache-Control public;
+		aio threads;
+		auth_request /download_auth.php;
+		expires 31d;
+		limit_except GET { deny all; }
+	}
+
+	location /storage/upload {
+		client_body_timeout 1200;
+		client_max_body_size 1g;
+		limit_except GET POST { deny all; }
+		try_files $uri $uri/ /index.php?$args;
+	}
+
+	location ~ \.php$ {
+		//fastcgi_param PHP_ADMIN_VALUE "open_basedir=$base/:/usr/lib/php/:/tmp/";
+		fastcgi_buffer_size 32k;
+		fastcgi_buffers 8 16k;
+		fastcgi_index index.php;
+		fastcgi_param DOCUMENT_ROOT $realpath_root;
+		fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+		include fastcgi_params;
+		limit_req zone=domain_req burst=10 nodelay;
+		try_files $fastcgi_script_name =404;
+		fastcgi_intercept_errors on;
+		fastcgi_pass unix:/run/php/php7.0.sock;
+	}
+
+	location ~ ^(/reset_password|/storage/action|/storage/download|/storage/edit|/storage/edit_folder|/storage/export|/storage/import_attributes|/storage/import_attributes_columns|/storage/new_folder|/storage/permissions|/storage/search|/storage/settings|/storage/upload) {
+		limit_except GET POST { deny all; }
+		limit_req zone=domain_req burst=10 nodelay;
+		try_files $uri $uri/ /$1/index.php?$args;
+	}
+}

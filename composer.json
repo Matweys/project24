@@ -1,0 +1,40 @@
+{
+	"autoload": {
+		"files": [
+			"helpers/flash.php",
+			"helpers/form_csrf.php",
+			"helpers/pdo.php",
+			"helpers/template.php",
+			"helpers/translation.php",
+			"helpers/url.php",
+			"main/helpers/language_view.php",
+			"main/helpers/parse_datetime.php",
+			"main/helpers/random.php",
+			"main/helpers/templates.php"
+		],
+		"psr-4": {
+			"Admin\\": "admin/",
+			"Auth\\": "auth/",
+			"Helpers\\": "helpers/",
+			"Main\\": "main/",
+			"Router\\": "router/",
+			"URLSafeTimedSerializer\\": "lib/urlsafe_timed_serializer/"
+		}
+	},
+	"require": {
+		"php": "^8",
+		"ext-imagick": "*",
+		"ext-mbstring": "*",
+		"ext-pdo": "*",
+		"bjeavons/zxcvbn-php": "^1.0",
+		"enshrined/svg-sanitize": "^0.16.0",
+		"phpauth/phpauth": "dev-master",
+		"phpmailer/phpmailer": "~6.1",
+		"phpoffice/phpspreadsheet": "^1.16",
+		"pomo/pomo": "^1.4",
+		"soundasleep/html2text": "^2.0",
+		"michelf/php-markdown": "^2.0",
+		"pg_ito/fast_ulid": "^1.0",
+		"symfony/yaml": "^6.3"
+	}
+}

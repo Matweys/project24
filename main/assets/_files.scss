@@ -1,0 +1,113 @@
+.file-list {
+	&:before, &:after {
+		content: " ";
+		display: table;
+	}
+
+	&:after {
+		clear: both;
+	}
+}
+
+.file-list-entity {
+	min-height: 1px;
+
+	@media (min-width: map-get($grid-breakpoints, 'sm')) {
+		float: left;
+	}
+}
+
+.file-list-row {
+	&:before, &:after {
+		content: " ";
+		display: table;
+	}
+
+	&:after {
+		clear: both;
+	}
+}
+
+@media (min-width: map-get($grid-breakpoints, 'xs')) {
+	.file-list-entity {
+		-ms-flex-item-align: auto;
+		-ms-flex-order: 0;
+		-ms-flex: 0 1 auto;
+		align-self: auto;
+		flex: 0 1 auto;
+		order: 0;
+	}
+
+	.file-list-row {
+		-ms-flex-align: start;
+		-ms-flex-direction: row;
+		-ms-flex-line-pack: start;
+		-ms-flex-pack: distribute;
+		-ms-flex-wrap: wrap;
+		align-content: flex-start;
+		align-items: flex-start;
+		display: -ms-flexbox;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: space-around;
+	}
+}
+
+.file-list {
+	margin: 1.4em auto 0;
+}
+
+.file-list-entity {
+	margin: 0 0 10px;
+	max-width: 250px;
+	padding: 0 5px;
+	text-align: center;
+
+	img {
+		display: inline-block;
+		max-width: 100%;
+		vertical-align: middle;
+
+		@media (min-width: map-get($grid-breakpoints, 'xs')) {
+			max-height: 200px;
+		}
+	}
+}
+
+
+.file-list-entity-actions {
+	padding: 0 0 0 .5em;
+	text-align: right;
+	vertical-align: top;
+
+	@media (min-width: map-get($grid-breakpoints, 'xs')) {
+		white-space: nowrap;
+	}
+}
+
+.file-list-entity-checkbox {
+	vertical-align: top;
+	width: 1%;
+}
+
+.file-list-entiry-controls {
+	width: 100%;
+
+	td {
+		vertical-align: top;
+	}
+}
+
+.file-list-entity-name {
+	word-break: break-all;
+}
+
+.file-list-icon {
+	height: 70px;
+	margin: 0 0 10px;
+}
+
+.file-list-row {
+	margin: 0 -1em;
+}

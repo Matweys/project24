@@ -1,0 +1,286 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-10-29 01:46+0700\n"
+"PO-Revision-Date: 2021-01-12 15:51+0700\n"
+"Last-Translator: 32b100 <32b100@gmail.com>\n"
+"Language-Team: Russian\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n"
+"%100<10 || n%100>=20) ? 1 : 2;\n"
+
+
+#, php-format
+msgid "File storage has been deleted."
+msgid_plural "%d file storages have been deleted."
+msgstr[0] ""
+msgstr[1] ""
+
+#, php-format
+msgid "The invite email has been sent."
+msgid_plural "The invite emails have been sent to %d users."
+msgstr[0] "Приглашения отправлены на email %d пользователю."
+msgstr[1] "Приглашения отправлены на email %d пользователям."
+msgstr[2] "Приглашения отправлены на email %d пользователям."
+msgstr[3] "Приглашение отправлено пользователю на email."
+
+msgid "Database error."
+msgstr "Ошибка базы данных."
+
+msgid "Enter the name of the file storage"
+msgstr "Введите название хранилища файлов"
+
+msgid "Enter the name of the attribute"
+msgstr "Введите название атрибута"
+
+msgid "Enter User Email"
+msgstr "Введите Email пользователя"
+
+msgid "Email is too short"
+msgstr "Email слишком короткий"
+
+msgid "Email is too long"
+msgstr "Email слишком длинный"
+
+#, php-format
+msgid ""
+"The account activation message has been already sent to %s recently. Try to "
+"sent account activation message later."
+msgstr ""
+"На адрес %s недавно уже было отправлено сообщение. Попробуйте отправить сообщение активации учетной "
+"записи позднее."
+
+msgid "No mail template"
+msgstr "Ошибка почтового шаблона"
+
+msgid "Mail error"
+msgstr "Ошибка отправки email"
+
+#, php-format
+msgid "User has been deleted."
+msgid_plural "%d users have been deleted."
+msgstr[0] "%d пользователь удален."
+msgstr[1] "%d пользователя удалено."
+msgstr[2] "%d пользователей удалено."
+msgstr[3] "Пользователь удален."
+
+msgid "Enter Email."
+msgstr "Введите email."
+
+msgid "A user with this email already exists."
+msgstr "Пользователь с таким email уже существует."
+
+msgid "Password is too short."
+msgstr "Пароль слишком короткий."
+
+msgid "Password is too weak."
+msgstr "Пароль слишком ненадежный."
+
+msgid "File Storages"
+msgstr "Хранилища файлов"
+
+msgid "Users"
+msgstr "Пользователи"
+
+msgid "Log"
+msgstr "Журнал действий"
+
+msgid "Help"
+msgstr "Справка"
+
+msgid "Edit Profile"
+msgstr "Редактировать профайл"
+
+msgid "Sign out"
+msgstr "Выйти"
+
+msgctxt "pager"
+msgid "Previous"
+msgstr "Предыдущая"
+
+msgctxt "pager"
+msgid "Next"
+msgstr "Следующая"
+
+#, php-format
+msgctxt "pager"
+msgid "%d–%d of %d"
+msgstr "%d–%d из %d"
+
+msgid "Search"
+msgstr "Поиск"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Order by timestamp"
+msgstr "Сортировать по дате и времени"
+
+msgid "Timestamp"
+msgstr "Дата и время"
+
+msgid "Message"
+msgstr "Сообщение"
+
+#, php-format
+msgid "%d message"
+msgid_plural "%d messages"
+msgstr[0] "%d сообщение"
+msgstr[1] "%d сообщения"
+msgstr[2] "%d сообщений"
+msgstr[3] "одно сообщение"
+
+msgid "Edit File Storage"
+msgstr "Редактировать хранилище"
+
+msgid "New File Storage"
+msgstr "Новое хранилище"
+
+msgid "Attribute name"
+msgstr "Название атрибута"
+
+msgid "Attribute type"
+msgstr "Тип атрибута"
+
+msgid "Sort"
+msgstr "Сортировка"
+
+msgid "Filter"
+msgstr "Фильтр"
+
+msgid "Delete an attribute"
+msgstr "Удалить атрибут"
+
+msgid "Delete an attribute?"
+msgstr "Удалить атрибут?"
+
+msgid "User Email"
+msgstr "Email пользователя"
+
+msgid "User permissions"
+msgstr "Права пользователя"
+
+msgid "Delete user permissions"
+msgstr "Удалить права доступа пользователя"
+
+msgid "Delete user permissions?"
+msgstr "Удалить права доступа пользователя?"
+
+msgid "File Storage Name"
+msgstr "Название хранилища файлов"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Attributes"
+msgstr "Атрибуты"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Add an attribute"
+msgstr "Добавить атрибут"
+
+msgid "Users Permissions"
+msgstr "Права пользователей"
+
+msgid "Send the activation email"
+msgstr "Оправить email активации"
+
+msgid "Add User Permissions"
+msgstr "Добавить права пользователя"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Delete selected File Storages"
+msgstr "Удалить выбранные хранилища"
+
+msgid "Select all"
+msgstr "Выделить все"
+
+msgid "Order by ID"
+msgstr "Сортировать по ID"
+
+msgid "Order by Title"
+msgstr "Сортировать по названию"
+
+msgid "Title"
+msgstr "Название"
+
+msgid "Order by User"
+msgstr "Сортировать по пользователям"
+
+msgid "Order by Size"
+msgstr "Сортировать по размеру"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Select File Storage"
+msgstr "Выделить хранилище"
+
+#, php-format
+msgid "%d storage"
+msgid_plural "%d storages"
+msgstr[0] "%d хранилище файлов"
+msgstr[1] "%d хланилища файлов"
+msgstr[2] "%d хранилищ файлов"
+msgstr[3] "1 хранилище файлов"
+
+msgid "Delete selected File Storages?"
+msgstr "Удалить выбранные хранилища"
+
+msgid "Select File Storages"
+msgstr "Выберите хранилище"
+
+msgid "Edit User"
+msgstr "Редактировать пользователя"
+
+msgid "New User"
+msgstr "Новый пользователь"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Full name"
+msgstr "Имя, фамилия"
+
+msgid "Active"
+msgstr "Активен"
+
+msgid "Delete selected users"
+msgstr "Удалить выбранных пользователей"
+
+msgid "Order by email"
+msgstr "Сортировать по Email"
+
+msgid "Order by full name"
+msgstr "Сортировать по имени и фамилии"
+
+msgid "Order by user permissions"
+msgstr "Сортировать по правам пользователя"
+
+msgid "Order by active"
+msgstr "Сортировать по активности"
+
+msgid "Select User"
+msgstr "Выделить пользователя"
+
+#, php-format
+msgid "%d user"
+msgid_plural "%d users"
+msgstr[0] "%d пользователь"
+msgstr[1] "%d пользователя"
+msgstr[2] "%d пользователей"
+msgstr[3] "1 пользователь"
+
+msgid "Delete selected users?"
+msgstr "Удалить выбранных пользователей?"
+
+msgid "Select users"
+msgstr "Выберите пользователей"

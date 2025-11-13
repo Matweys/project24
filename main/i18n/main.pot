@@ -1,0 +1,105 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: main 1.0\n"
+"Report-Msgid-Bugs-To:  \n"
+"POT-Creation-Date: 2023-10-29 01:46+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Delete selected files and folders?"
+msgstr ""
+
+msgctxt "upload_file_overwrite_dialog"
+msgid "Abort"
+msgstr ""
+
+msgctxt "upload_file_overwrite_dialog"
+msgid "None"
+msgstr ""
+
+msgctxt "upload_file_overwrite_dialog"
+msgid "All"
+msgstr ""
+
+msgctxt "upload_file_overwrite_dialog"
+msgid "No"
+msgstr ""
+
+msgctxt "upload_file_overwrite_dialog"
+msgid "Yes"
+msgstr ""
+
+#, javascript-format
+msgctxt "upload_file_overwrite_dialog"
+msgid "File already exists %s. Overwrite this file?"
+msgstr ""
+
+msgid "Select file"
+msgstr ""
+
+msgid "Rename folder"
+msgstr ""
+
+msgid "Edit file attributes"
+msgstr ""
+
+msgid "File upload error"
+msgstr ""
+
+msgctxt "help"
+msgid "Text retrieval error"
+msgstr ""
+
+msgctxt "help"
+msgid "Help — Archivarius Digital Archive"
+msgstr ""
+
+msgctxt "help"
+msgid "Help"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Close"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Folder tree retrieval error"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Move files"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Move selected files to:"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Root folder"
+msgstr ""
+
+msgctxt "move_files"
+msgid "Choose destination folder"
+msgstr ""
+
+msgctxt "move_files"
+msgid "A file with the same name exists in the destination folder."
+msgstr ""
+
+msgctxt "move_files"
+msgid "File move error."
+msgstr ""
+
+msgctxt "move_files"
+msgid "Please select a destination folder to move the files to."
+msgstr ""

@@ -1,0 +1,89 @@
+# SOME DESCRIPTIVE TITLE.
+# This file is put in the public domain.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: auth 1.0\n"
+"Report-Msgid-Bugs-To:  \n"
+"POT-Creation-Date: 2023-10-29 01:46+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Database error."
+msgstr ""
+
+msgid "Invalid account activation link"
+msgstr ""
+
+msgid "Account is already activated."
+msgstr ""
+
+msgid "Session error"
+msgstr ""
+
+msgid "Password is too short."
+msgstr ""
+
+msgid "Password is too weak."
+msgstr ""
+
+msgid "Password has been change."
+msgstr ""
+
+#, php-format
+msgid ""
+"Account %s has been activated. Please set a password for your account. You "
+"may set the password later by following the link <a href=\"%s\">Forgot your "
+"password</a>."
+msgstr ""
+
+#, php-format
+msgid "%s - Forgot your password?"
+msgstr ""
+
+msgid "Forgot password?"
+msgstr ""
+
+msgid ""
+"Enter the email address associated with your account and we will send you a "
+"link to reset your password."
+msgstr ""
+
+msgid "Request Password Reset"
+msgstr ""
+
+msgid "← Sign in"
+msgstr ""
+
+#, php-format
+msgid "%s - Sign in"
+msgstr ""
+
+msgid "Sing in"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Remember me"
+msgstr ""
+
+#, php-format
+msgid "%s - Set new password"
+msgstr ""
+
+msgid "Set new password"
+msgstr ""
+
+msgid "New password"
+msgstr ""
+
+msgid "Change password"
+msgstr ""

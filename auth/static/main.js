@@ -1,0 +1,1 @@
+document.querySelector(".js-language-switch")&&function(){"use strict";var e=document.querySelector(".js-language-switch");e&&e.addEventListener("change",(function(e){document.cookie="lang="+encodeURIComponent(this.value)+";expires="+new Date(Date.now()+26784e5).toUTCString()+";path=/",location.reload()}),!1)}();
