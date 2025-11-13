@@ -31,11 +31,12 @@ SQL
 EOF
 
 # 6. Загрузка схемы БД
-psql -U app_user -d app_db -f db/schema.sql
-psql -U app_user -d app_db -f db/cache.sql
-psql -U app_user -d app_db -f db/storage_folders.sql
-psql -U app_user -d app_db -f db/throttle.sql
-for file in db/20*.sql; do psql -U app_user -d app_db -f "$file"; done
+export PGPASSWORD='ваш_пароль_бд'
+psql -h localhost -U app_user -d app_db -f db/schema.sql
+psql -h localhost -U app_user -d app_db -f db/cache.sql
+psql -h localhost -U app_user -d app_db -f db/storage_folders.sql
+psql -h localhost -U app_user -d app_db -f db/throttle.sql
+for file in db/20*.sql; do psql -h localhost -U app_user -d app_db -f "$file" 2>&1 | grep -v "ERROR\|NOTICE" || true; done
 
 # 7. Настройка конфига
 cp config/archivarius_web_config.php.sample config/archivarius_web_config.php

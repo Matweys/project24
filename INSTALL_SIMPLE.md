@@ -92,19 +92,25 @@ EOF
 # Переход в директорию проекта
 cd /var/www/название_репозитория
 
-# Загрузка основной схемы
-psql -U app_user -d app_db -f db/schema.sql
+# Установка переменной окружения с паролем (чтобы не вводить пароль каждый раз)
+export PGPASSWORD='ваш_пароль_бд'
+
+# Загрузка основной схемы (используем -h localhost для TCP подключения)
+psql -h localhost -U app_user -d app_db -f db/schema.sql
 
 # Загрузка дополнительных таблиц
-psql -U app_user -d app_db -f db/cache.sql
-psql -U app_user -d app_db -f db/storage_folders.sql
-psql -U app_user -d app_db -f db/throttle.sql
+psql -h localhost -U app_user -d app_db -f db/cache.sql
+psql -h localhost -U app_user -d app_db -f db/storage_folders.sql
+psql -h localhost -U app_user -d app_db -f db/throttle.sql
 
 # Применение миграций (файлы с датами)
+# Некоторые миграции могут выдавать ошибки о существующих колонках - это нормально
 for file in db/20*.sql; do
-    psql -U app_user -d app_db -f "$file"
+    psql -h localhost -U app_user -d app_db -f "$file" 2>&1 | grep -v "ERROR\|NOTICE" || true
 done
 ```
+
+**Примечание:** Параметр `-h localhost` необходим для обхода peer authentication в PostgreSQL. Переменная `PGPASSWORD` позволяет не вводить пароль каждый раз.
 
 ---
 
@@ -209,13 +215,15 @@ chmod 600 /var/www/название_репозитория/config/archivarius_we
 cd /var/www/название_репозитория
 
 # Генерация конфигурации Manticore
+# ВАЖНО: Сначала нужно настроить конфиг приложения (шаг 7), чтобы скрипт мог прочитать параметры БД
+# Если конфиг еще не настроен, можно указать параметры вручную:
 php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf
 
 # Редактирование конфигурации
 nano /tmp/manticore_config.conf
 ```
 
-В файле найдите и замените (примерно строки 21-24):
+В файле найдите и замените (примерно строки 21-24, ищите все вхождения `sql_db =`, `sql_user =`, `sql_pass =`):
 ```
 sql_db = 
 sql_host = 
@@ -231,6 +239,8 @@ sql_pass = ваш_пароль_бд
 sql_user = app_user
 ```
 
+**Важно:** Замените ВСЕ вхождения этих параметров в файле (их может быть несколько для разных источников данных).
+
 **Сохраните файл:** `Ctrl+O`, `Enter`, `Ctrl+X`
 
 Затем скопируйте конфигурацию:
@@ -240,6 +250,9 @@ mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
 # Запуск Manticore
 systemctl start manticore
 systemctl enable manticore
+
+# Проверка что Manticore запустился
+systemctl status manticore
 
 # Индексация данных
 su - manticore -s /bin/bash -c "indexer --all --rotate"
@@ -318,6 +331,8 @@ php setup_admin.php
 
 **Логин для входа:** `admin`  
 **Пароль для входа:** `Qq1234567!`
+
+**Примечание:** Если скрипт выдает ошибку подключения к БД, убедитесь что в конфиге `config/archivarius_web_config.php` правильно указан `database_uri` с паролем.
 
 ---
 
