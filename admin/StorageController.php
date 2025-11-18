@@ -703,29 +703,47 @@ LIMIT :limit OFFSET :offset"
 
             // Копируем конфигурацию (требуются права root или sudo)
             $commands = [
-                "cp " . escapeshellarg($tmp_config) . " " . escapeshellarg($manticore_config),
-                "systemctl restart manticore",
-                "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate") . " 2>&1",
+                [
+                    'cmd' => "cp " . escapeshellarg($tmp_config) . " " . escapeshellarg($manticore_config),
+                    'use_sudo' => true,
+                ],
+                [
+                    'cmd' => "systemctl restart manticore",
+                    'use_sudo' => true,
+                ],
+                [
+                    'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate"),
+                    'use_sudo' => true,
+                    'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
+                ],
             ];
 
-            // Пробуем выполнить команды через sudo (если настроено) или напрямую
-            foreach ($commands as $cmd) {
+            // Выполняем команды
+            foreach ($commands as $cmd_data) {
+                $cmd = $cmd_data['cmd'];
                 $output = [];
                 $return_var = 0;
 
                 // Пробуем сначала через sudo, если не получится - напрямую
-                exec("sudo " . $cmd . " 2>&1", $output, $return_var);
+                if (!empty($cmd_data['use_sudo'])) {
+                    exec("sudo " . $cmd . " 2>&1", $output, $return_var);
+                }
+                
                 if ($return_var !== 0) {
                     // Если sudo не сработал, пробуем напрямую (для случая, когда PHP запущен от root)
                     exec($cmd . " 2>&1", $output, $return_var);
                 }
 
-                if ($return_var !== 0 && strpos($cmd, 'indexer') !== false) {
-                    // Для indexer ошибка "no tables found" - это нормально, если хранилищ еще нет
+                if ($return_var !== 0) {
                     $output_str = implode("\n", $output);
-                    if (strpos($output_str, 'no tables found') === false) {
-                        error_log("Manticore indexer failed: " . $output_str);
+                    
+                    // Для indexer ошибка "no tables found" - это нормально, если хранилищ еще нет
+                    if (!empty($cmd_data['ignore_no_tables']) && strpos($output_str, 'no tables found') !== false) {
+                        // Это нормально, игнорируем
+                        continue;
                     }
+                    
+                    error_log("Manticore update command failed: {$cmd} - " . $output_str);
                 }
             }
 
