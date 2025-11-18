@@ -1554,6 +1554,11 @@ limit :limit offset :offset"
 
             // Выполняем команды
             error_log("updateManticoreIndexes: начинаю выполнение команд");
+            
+            // Проверяем, запущен ли PHP от root
+            $is_root = (posix_geteuid() === 0);
+            error_log("updateManticoreIndexes: PHP запущен от root: " . ($is_root ? 'да' : 'нет'));
+            
             foreach ($commands as $cmd_data) {
                 $cmd = $cmd_data['cmd'];
                 $output = [];
@@ -1561,13 +1566,21 @@ limit :limit offset :offset"
 
                 error_log("updateManticoreIndexes: выполняю команду: " . substr($cmd, 0, 100));
 
-                // Пробуем сначала через sudo, если не получится - напрямую
-                if (!empty($cmd_data['use_sudo'])) {
+                // Если PHP запущен от root, выполняем команды напрямую без sudo
+                // Если нет - пробуем через sudo (если настроено)
+                if ($is_root) {
+                    // PHP от root - выполняем напрямую
+                    exec($cmd . " 2>&1", $output, $return_var);
+                } elseif (!empty($cmd_data['use_sudo'])) {
+                    // Пробуем через sudo
                     exec("sudo " . $cmd . " 2>&1", $output, $return_var);
-                }
-                
-                if ($return_var !== 0) {
-                    // Если sudo не сработал, пробуем напрямую (для случая, когда PHP запущен от root)
+                    
+                    // Если sudo не сработал, пробуем напрямую (на случай, если права есть)
+                    if ($return_var !== 0) {
+                        exec($cmd . " 2>&1", $output, $return_var);
+                    }
+                } else {
+                    // Выполняем напрямую
                     exec($cmd . " 2>&1", $output, $return_var);
                 }
                 
