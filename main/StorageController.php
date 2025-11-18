@@ -44,7 +44,14 @@ class StorageController extends BaseController
 
         if (!empty($storage['attributes'])) {
             foreach ($storage['attributes'] as $v) {
-                $sort_fields[] = ['a'.$v['id'], 'a'.$v['id'].' DESC'];
+                // Для текстовых полей добавляем NULLS LAST для корректной сортировки
+                $field = 'a'.$v['id'];
+                $is_text = in_array($v['type_name'] ?? '', ['string', 'text', '']);
+                if ($is_text) {
+                    $sort_fields[] = [$field.' NULLS LAST', $field.' DESC NULLS LAST'];
+                } else {
+                    $sort_fields[] = [$field, $field.' DESC'];
+                }
             }
         }
 
@@ -774,7 +781,14 @@ where id = :id and folder is true"
 
         if (!empty($storage['attributes'])) {
             foreach ($storage['attributes'] as $v) {
-                $sort_fields[] = ['folder, a'.$v['id'], 'folder, a'.$v['id'].' DESC'];
+                // Для текстовых полей добавляем NULLS LAST для корректной сортировки
+                $field = 'a'.$v['id'];
+                $is_text = in_array($v['type_name'] ?? '', ['string', 'text', '']);
+                if ($is_text) {
+                    $sort_fields[] = ['folder, '.$field.' NULLS LAST', 'folder, '.$field.' DESC NULLS LAST'];
+                } else {
+                    $sort_fields[] = ['folder, '.$field, 'folder, '.$field.' DESC'];
+                }
             }
         }
 
