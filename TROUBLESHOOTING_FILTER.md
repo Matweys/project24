@@ -34,15 +34,20 @@ cat /etc/manticoresearch/manticore.conf | grep listen
 ## 4. Проверка существования индексов
 
 ```bash
-# Подключение к Manticore
-mysql -h 127.0.0.1 -P 9306
+cd /var/www/project24
 
-# Просмотр списка индексов
-SHOW TABLES;
+# Проверка всех индексов
+php check_manticore.php
 
-# Проверка конкретного индекса (замените X на ID хранилища)
-DESCRIBE file_X_filter;
+# Проверка конкретного хранилища (замените 3 на ID вашего хранилища)
+php check_manticore.php 3
 ```
+
+Скрипт покажет:
+- Статус подключения к Manticore
+- Список всех индексов
+- Количество документов в каждом индексе
+- Структуру индекса для конкретного хранилища
 
 ## 5. Создание/обновление индексов
 
@@ -75,8 +80,15 @@ tail -f /var/log/nginx/error.log
 
 ## 7. Ручная проверка индексации
 
+Используйте скрипт проверки:
 ```bash
-# Подключение к Manticore
+cd /var/www/project24
+php check_manticore.php [storage_id]
+```
+
+Или установите mysql-client для прямого подключения:
+```bash
+apt install mysql-client-core-8.0
 mysql -h 127.0.0.1 -P 9306
 
 # Проверка количества документов в индексе (замените X на ID хранилища)
