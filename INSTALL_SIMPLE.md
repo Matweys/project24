@@ -254,6 +254,11 @@ systemctl status manticore
 # ВАЖНО: Если в базе данных еще нет хранилищ, команда выдаст ошибку "no tables found" - это нормально
 # Индексы появятся автоматически после создания первого хранилища через веб-интерфейс
 su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индексация пропущена: хранилищ еще нет"
+
+# После создания первого хранилища через веб-интерфейс выполните:
+# 1. Обновите конфигурацию: php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf && mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
+# 2. Перезапустите Manticore: systemctl restart manticore
+# 3. Создайте индексы: su - manticore -s /bin/bash -c "indexer --all --rotate"
 ```
 
 ---
@@ -400,6 +405,24 @@ systemctl enable manticore
    - Создайте первое хранилище через веб-интерфейс
 
 **Примечание:** Если Manticore выдает ошибку "no tables found" при индексации — это нормально. Индексы появятся автоматически после создания первого хранилища.
+
+**Важно:** После создания первого хранилища через веб-интерфейс нужно:
+1. Обновить конфигурацию Manticore:
+   ```bash
+   cd /var/www/project24
+   php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf
+   mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
+   ```
+2. Перезапустить Manticore:
+   ```bash
+   systemctl restart manticore
+   ```
+3. Создать индексы:
+   ```bash
+   su - manticore -s /bin/bash -c "indexer --all --rotate"
+   ```
+
+После этого фильтрация и поиск будут работать. При создании новых хранилищ повторяйте эти шаги.
 
 ---
 
