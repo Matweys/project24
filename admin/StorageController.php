@@ -41,16 +41,33 @@ class StorageController extends BaseController
                                 $r = $this->db->prepare('SELECT id FROM storage WHERE id = ?');
                                 $r->execute([$storage_id]);
                                 if (!$r->fetchColumn()) {
+                                    // Удаляем старые задачи для несуществующего хранилища
+                                    try {
+                                        $r = $this->db->prepare("DELETE FROM gue_jobs WHERE job_type = 'delete_storage' AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ?");
+                                        $r->execute([$storage_id]);
+                                    } catch (\PDOException $e) {
+                                        error_log((string) $e);
+                                    }
                                     $errors[] = sprintf(__('Storage with ID %d does not exist.'), $storage_id);
                                     continue;
                                 }
 
                                 // Проверяем, не создана ли уже задача на удаление этого хранилища
-                                $r = $this->db->prepare("SELECT job_id FROM gue_jobs WHERE job_type = 'delete_storage' AND queue = 'queue' AND error_count = 0 AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ?");
+                                // Проверяем только активные задачи (error_count = 0) для существующего хранилища
+                                // Также проверяем, что задача не старше 1 часа (возможно, она зависла)
+                                $r = $this->db->prepare("SELECT job_id FROM gue_jobs WHERE job_type = 'delete_storage' AND queue = 'queue' AND error_count = 0 AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ? AND created_at > NOW() - INTERVAL '1 hour'");
                                 $r->execute([$storage_id]);
                                 if ($r->fetchColumn()) {
                                     $errors[] = sprintf(__('Deletion task for storage ID %d already exists.'), $storage_id);
                                     continue;
+                                }
+                                
+                                // Удаляем старые зависшие задачи для этого хранилища
+                                try {
+                                    $r = $this->db->prepare("DELETE FROM gue_jobs WHERE job_type = 'delete_storage' AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ? AND created_at <= NOW() - INTERVAL '1 hour'");
+                                    $r->execute([$storage_id]);
+                                } catch (\PDOException $e) {
+                                    error_log((string) $e);
                                 }
 
                                 // Создаем задачу на удаление
@@ -70,7 +87,7 @@ class StorageController extends BaseController
                         }
 
                         if ($deleted_count > 0) {
-                            flash(sprintf(_n('File storage has been deleted.', '%d file storages have been deleted.', $deleted_count), $deleted_count));
+                            flash(sprintf(_n('Deletion task for file storage has been created.', 'Deletion tasks for %d file storages have been created.', $deleted_count), $deleted_count));
                         }
 
                         if ($errors) {
