@@ -19,7 +19,7 @@
 				<td class="header__shim"></td>
 				<td class="header__logo">
 					<button class="hamburger hamburger--vortex js-menu-toggler menu-toggler" type="button"><span class="hamburger-box"><span class="hamburger-inner"></span></span></button>
-					<?php if (!empty($view['header_logo_url'])) { ?><a href="<?php echo $config['base_url']; ?>/"><img alt="<?php echo $view['header_logo_text'] ?? $config['short_site_name'] ?? ''; ?>" class="header__logo_img" src="<?php echo $view['header_logo_url']; ?>" style="width: 150px !important; max-width: 150px !important; height: auto !important;"></a><?php } ?>
+					<a href="<?php echo $config['base_url']; ?>/"><img alt="<?php echo $view['header_logo_text'] ?? $config['short_site_name'] ?? ''; ?>" class="header__logo_img" src="<?php echo $view['header_logo_url'] ?? ''; ?>" style="width: 150px !important; max-width: 150px !important; height: auto !important;"></a>
 					<div class="header__logo_text"><a href="<?php echo $config['base_url']; ?>/"><?php echo $view['header_logo_description'] ?? ''; ?><?php if (!empty($config['debug'])) { ?><span class="debug">DEBUG</span><?php } ?></a></div>
 				</td>
 				<td class="header-menu" role="menubar">
