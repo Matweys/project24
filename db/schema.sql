@@ -328,18 +328,18 @@ COPY public.setting (language_id,group_id,name,type,text_value) FROM stdin;
 1	3	admin_site_name	\N	Archivarius Admin Panel
 1	4	admin_header_logo_description	\N	Admin Panel
 1	4	admin_header_logo_text	\N	Archivarius
-2	1	short_site_name	\N	Архивариус
+2	1	short_site_name	\N	Проект24
 2	1	site_description	\N	Электронный архив
-2	1	site_name	\N	Архивариус. Электронный архив
+2	1	site_name	\N	Проект24. Электронный архив
 2	2	footer_copyright	\N	<div style="margin: 0 0 .5rem;"><a href="https://www.archivarius.ru">archivarius.ru</a></div><div>2004-2020 <a href="https://www.archivarius.ru">АРХИВАРИУСЪ</a></div>
 2	2	footer_menu	json	[{"link":"https://www.archivarius.ru/o-kompanii/","title":"О компании"},{"link":"https://www.archivarius.ru/otzyvy/","title":"Отзывы клиентов"},{"link":"https://www.archivarius.ru/dlya-otrasley/","title":"Решения для отраслей"}]
 2	2	footer_text	\N	<div>Москва, ул.&nbsp;Авангардная, дом&nbsp;3. БЦ&nbsp;Сатурн</div><h3 style="margin:.25rem 0;"><a href="tel:+74955320732"><img src="/static/img/icon_phone_white.svg" style="margin-right:10px;width:15px;">8 495 532-07-32</a></h3><div><a href="mailto:info@archivarius.ru">info@archivarius.ru</a></div>
 2	2	header_logo_description	\N	Электронный архив
-2	2	header_logo_text	\N	Архивариус
+2	2	header_logo_text	\N	Проект24
 2	2	header_logo_url	\N	/static/img/archivarius_logo.png
-2	3	admin_site_name	\N	Архивариус. Панель управления
+2	3	admin_site_name	\N	Проект24. Панель управления
 2	4	admin_header_logo_description	\N	Панель управления
-2	4	admin_header_logo_text	\N	Архивариус
+2	4	admin_header_logo_text	\N	Проект24
 \.
 
 -- Пример таблицы хранения файлов

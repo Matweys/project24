@@ -43,17 +43,17 @@ COPY public.setting (language_id,group_id,name,type,text_value) FROM stdin;
 1	4	admin_header_logo_description	\N	Admin Panel
 1	4	admin_header_logo_text	\N	Archivarius
 1	\N	user_activation_notice	\N	<h1>You have been invited to access the Archivarius Digital Archive website. Please activate your account</h1><p>To access the files on the Archivarius Digital Archive website, please follow this link. Thank you.</p><h2><a href="{0}">Activate your account</a> </h2><p>If you think you received this email by mistake, just ignore it then.</p><p>Sincerely yours, Archivarius team</p><p>st. Pryanishnikova, 19A, stroenie 4. Moscow.<br>Working hours: Monday - Friday, from 9 to 18 hours.<br>+7-495-921-45-72.<br>info@archivarius.ru</p>
-2	1	short_site_name	\N	Архивариус
+2	1	short_site_name	\N	Проект24
 2	1	site_description	\N	Электронный архив
-2	1	site_name	\N	Архивариус. Электронный архив
+2	1	site_name	\N	Проект24. Электронный архив
 2	2	footer_copyright	\N	<div style="margin: 0 0 .5rem;"><a href="https://www.archivarius.ru">archivarius.ru</a></div><div>2004-2020 <a href="https://www.archivarius.ru">АРХИВАРИУСЪ</a></div>
 2	2	footer_menu	json	[{"link":"https://www.archivarius.ru/o-kompanii/","title":"О компании"},{"link":"https://www.archivarius.ru/otzyvy/","title":"Отзывы клиентов"},{"link":"https://www.archivarius.ru/dlya-otrasley/","title":"Решения для отраслей"}]
 2	2	footer_text	\N	<h2 style="margin:0 0 .5rem;"><a href="https://www.archivarius.ru/kontakty/">Контакты</a></h2><div style="margin:0 0 .5rem;">Москва, Прянишникова, 19А, строение&nbsp;4</div><h3 style="margin:.5rem 0;"><a href="tel:+74959214572"><img src="/static/img/icon_phone_white.svg" style="margin-right:10px;width:15px;">8-495-921-45-72</a></h3><div><a href="mailto:info@archivarius.ru">info@archivarius.ru</a></div>
 2	2	header_logo_description	\N	Электронный архив
-2	2	header_logo_text	\N	Архивариус
+2	2	header_logo_text	\N	Проект24
 2	2	header_logo_url	\N	/static/img/archivarius_logo.png
-2	3	admin_site_name	\N	Архивариус. Панель управления
+2	3	admin_site_name	\N	Проект24. Панель управления
 2	4	admin_header_logo_description	\N	Панель управления
-2	4	admin_header_logo_text	\N	Архивариус
+2	4	admin_header_logo_text	\N	Проект24
 2	\N	user_activation_notice	\N	<h1>Вас пригласили для доступа к файлам на сайте «Архивариус электронный архив», пожалуйста, активируйте вашу учетную запись</h1><p>Чтобы получить доступ к файлам на сайте «Архивариус электронный архив», пожалуйста, нажмите на ссылку. Спасибо.</p><h2><a href="{0}">Активировать вашу учетную запись</a></h2><p>Если вы считаете, что получили это письмо по ошибке, — игнорируйте его.</p><p>С уважением,<br>Коллектив компании Архивариус</p><p>Москва, ул. Прянишникова, д. 19 А, стр 1.<br>Режим работы: понедельник — пятница, с 9 до 18 часов.<br>+7 495 921-45-72.<br>info@archivarius.ru</p>
 \.
