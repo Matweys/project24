@@ -377,7 +377,7 @@ img, iframe {
 
 .footer {
 	-ms-flex-negative: 0;
-	background: $primary url() no-repeat 0 center;
+	background: $primary;
 	color: #fff;
 	flex-shrink: 0;
 	font-size: .95rem;
@@ -564,7 +564,7 @@ form.modal-form {
 }
 
 .header {
-	background: $primary url() no-repeat 0 bottom;
+	background: $primary;
 	left: 0;
 	line-height: 1;
 
