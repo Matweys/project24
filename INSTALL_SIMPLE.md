@@ -58,12 +58,12 @@ chown -R manticore:manticore /var/lib/manticore /var/log/manticore /run/manticor
 cd /var/www
 
 # Клонирование проекта (замените URL на ваш репозиторий)
-git clone https://github.com/ваш_username/название_репозитория.git
+git clone https://github.com/ваш_username/project24.git
 # или если репозиторий приватный:
-# git clone https://ваш_токен@github.com/ваш_username/название_репозитория.git
+# git clone https://ваш_токен@github.com/ваш_username/project24.git
 
 # Переход в директорию проекта
-cd название_репозитория
+cd project24
 ```
 
 **Примечание:** Если проект уже скопирован на сервер другим способом, просто перейдите в его директорию.
@@ -94,7 +94,7 @@ EOF
 
 ```bash
 # Переход в директорию проекта
-cd /var/www/название_репозитория
+cd /var/www/project24
 
 # Установка переменной окружения с паролем (чтобы не вводить пароль каждый раз)
 export PGPASSWORD='ваш_пароль_бд'
@@ -169,7 +169,7 @@ nano config/archivarius_web_config.php
 ## Шаг 8: Установка зависимостей PHP
 
 ```bash
-cd /var/www/название_репозитория
+cd /var/www/project24
 composer install --no-dev --optimize-autoloader
 ```
 
@@ -187,7 +187,7 @@ composer install --no-dev --optimize-autoloader
 
 ```bash
 # Основное приложение
-cd /var/www/название_репозитория/main
+cd /var/www/project24/main
 npm install
 npm run compile:main.css
 npm run compile
@@ -195,7 +195,7 @@ npm run compress
 npm run update_asset_version
 
 # Страница авторизации
-cd /var/www/название_репозитория/auth
+cd /var/www/project24/auth
 npm install
 npm run compile:main.css
 npm run compile:main.js
@@ -207,16 +207,16 @@ npm run update_asset_version
 ## Шаг 10: Настройка прав доступа
 
 ```bash
-cd /var/www/название_репозитория
+cd /var/www/project24
 
 # Создание директории для загруженных файлов, если её нет
 mkdir -p public/static/storage
 
 # Установка прав доступа
-chown -R www-data:www-data /var/www/название_репозитория
-chmod -R 755 /var/www/название_репозитория
-chmod -R 775 /var/www/название_репозитория/public/static/storage
-chmod 600 /var/www/название_репозитория/config/archivarius_web_config.php
+chown -R www-data:www-data /var/www/project24
+chmod -R 755 /var/www/project24
+chmod -R 775 /var/www/project24/public/static/storage
+chmod 600 /var/www/project24/config/archivarius_web_config.php
 ```
 
 ---
@@ -224,7 +224,7 @@ chmod 600 /var/www/название_репозитория/config/archivarius_we
 ## Шаг 11: Настройка Manticore Search
 
 ```bash
-cd /var/www/название_репозитория
+cd /var/www/project24
 
 # Генерация конфигурации Manticore
 # ВАЖНО: Сначала нужно настроить конфиг приложения (шаг 7), чтобы скрипт мог прочитать параметры БД
@@ -258,20 +258,49 @@ su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индекса�
 
 ---
 
-## Шаг 12: Настройка Nginx
+## Шаг 12: Настройка PHP для загрузки файлов
+
+```bash
+# Создаем резервную копию php.ini
+cp /etc/php/8.1/fpm/php.ini /etc/php/8.1/fpm/php.ini.backup
+
+# Изменяем upload_max_filesize
+sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.1/fpm/php.ini
+
+# Изменяем post_max_size (должен быть >= upload_max_filesize)
+sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/8.1/fpm/php.ini
+
+# Проверяем изменения
+grep -E "^upload_max_filesize|^post_max_size" /etc/php/8.1/fpm/php.ini
+
+# Перезапускаем PHP-FPM
+systemctl restart php8.1-fpm
+
+# Проверяем, что настройки применились
+php-fpm8.1 -i | grep -E "upload_max_filesize|post_max_size" | head -2
+```
+
+**Важно:** 
+- `upload_max_filesize` - максимальный размер одного загружаемого файла
+- `post_max_size` - максимальный размер POST-запроса (должен быть >= upload_max_filesize)
+- Если нужно загружать файлы больше 100 МБ, увеличьте оба значения соответственно
+
+---
+
+## Шаг 13: Настройка Nginx
 
 ```bash
 # Создание конфигурации Nginx
 nano /etc/nginx/sites-available/app
 ```
 
-Вставьте следующее (замените `your-domain.com` на ваш IP или домен, и `название_репозитория` на реальное название директории проекта):
+Вставьте следующее (замените `your-domain.com` на ваш IP или домен):
 
 ```nginx
 server {
     listen 80;
     server_name your-domain.com;  # Замените на ваш IP или домен
-    root /var/www/название_репозитория/public;
+    root /var/www/project24/public;
     index index.php;
 
     client_max_body_size 1g;
@@ -316,10 +345,10 @@ systemctl reload nginx
 
 ---
 
-## Шаг 13: Создание администратора с предустановленным паролем
+## Шаг 14: Создание администратора с предустановленным паролем
 
 ```bash
-cd /var/www/название_репозитория
+cd /var/www/project24
 
 # Запуск скрипта для создания администратора
 php setup_admin.php
@@ -334,7 +363,7 @@ php setup_admin.php
 
 ---
 
-## Шаг 14: Запуск сервисов
+## Шаг 15: Запуск сервисов
 
 ```bash
 # Запуск и включение автозапуска для всех сервисов
@@ -353,7 +382,7 @@ systemctl enable manticore
 
 ---
 
-## Шаг 15: Проверка работы
+## Шаг 16: Проверка работы
 
 1. **Откройте сайт в браузере:**
    - Перейдите по адресу `http://ваш_ip_адрес` или `http://ваш_домен`
@@ -392,12 +421,12 @@ tail -f /var/log/postgresql/postgresql-*.log
 
 ---
 
-## Шаг 16: Замена логотипа (опционально)
+## Шаг 17: Замена логотипа (опционально)
 
 **Примечание:** По умолчанию в проекте используется логотип `/static/img/archivarius_logo.png`. Если вы хотите использовать свой логотип:
 
 ```bash
-cd /var/www/название_репозитория
+cd /var/www/project24
 
 # 1. Скопируйте ваш PNG файл в директорию со статикой
 # Замените /path/to/your/logo.png на путь к вашему файлу

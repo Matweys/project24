@@ -17,8 +17,8 @@ chown -R manticore:manticore /var/lib/manticore /var/log/manticore /run/manticor
 
 # 4. Клонирование проекта (замените URL на ваш)
 cd /var/www
-git clone https://github.com/ваш_username/название_репозитория.git
-cd название_репозитория
+git clone https://github.com/ваш_username/project24.git
+cd project24
 
 # 5. Создание БД (замените 'ваш_пароль_бд' на пароль)
 su - postgres << EOF
@@ -52,11 +52,11 @@ cd main && npm install && npm run compile:main.css && npm run compile && npm run
 cd auth && npm install && npm run compile:main.css && npm run compile:main.js && npm run update_asset_version && cd ..
 
 # 10. Права доступа
-mkdir -p /var/www/название_репозитория/public/static/storage
-chown -R www-data:www-data /var/www/название_репозитория
-chmod -R 755 /var/www/название_репозитория
-chmod -R 775 /var/www/название_репозитория/public/static/storage
-chmod 600 /var/www/название_репозитория/config/archivarius_web_config.php
+mkdir -p /var/www/project24/public/static/storage
+chown -R www-data:www-data /var/www/project24
+chmod -R 755 /var/www/project24
+chmod -R 775 /var/www/project24/public/static/storage
+chmod 600 /var/www/project24/config/archivarius_web_config.php
 
 # 11. Настройка Manticore
 # Скрипт автоматически читает параметры БД из config/archivarius_web_config.php
@@ -66,16 +66,22 @@ systemctl start manticore && systemctl enable manticore
 # Примечание: ошибка "no tables found" нормальна, если хранилищ еще нет
 su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индексация пропущена: хранилищ еще нет"
 
-# 12. Настройка Nginx
+# 12. Настройка PHP для загрузки файлов
+cp /etc/php/8.1/fpm/php.ini /etc/php/8.1/fpm/php.ini.backup
+sed -i 's/^upload_max_filesize = .*/upload_max_filesize = 100M/' /etc/php/8.1/fpm/php.ini
+sed -i 's/^post_max_size = .*/post_max_size = 100M/' /etc/php/8.1/fpm/php.ini
+systemctl restart php8.1-fpm
+
+# 13. Настройка Nginx
 nano /etc/nginx/sites-available/app
-# Вставьте конфиг из INSTALL_SIMPLE.md (шаг 12), замените your-domain.com и название_репозитория
+# Вставьте конфиг из INSTALL_SIMPLE.md (шаг 13), замените your-domain.com
 ln -s /etc/nginx/sites-available/app /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 
-# 13. Создание администратора
+# 14. Создание администратора
 php setup_admin.php
 
-# 14. Запуск сервисов
+# 15. Запуск сервисов
 systemctl start postgresql && systemctl enable postgresql
 systemctl start php8.1-fpm && systemctl enable php8.1-fpm
 systemctl start nginx && systemctl enable nginx
@@ -125,7 +131,7 @@ systemctl start manticore && systemctl enable manticore
 server {
     listen 80;
     server_name ваш_ip_или_домен;
-    root /var/www/название_репозитория/public;
+    root /var/www/project24/public;
     index index.php;
 
     client_max_body_size 1g;
@@ -156,7 +162,6 @@ server {
 
 Замените:
 - `ваш_ip_или_домен` на ваш IP или домен
-- `название_репозитория` на реальное название директории проекта
 
 ## Готово!
 
