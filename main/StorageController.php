@@ -1496,6 +1496,8 @@ limit :limit offset :offset"
      */
     protected function updateManticoreIndexes(): void
     {
+        error_log("updateManticoreIndexes: метод вызван");
+        
         $project_dir = dirname(__DIR__);
         $config_script = $project_dir . '/doc/manticore.conf.debian.sample';
         $manticore_config = '/etc/manticoresearch/manticore.conf';
@@ -1504,9 +1506,12 @@ limit :limit offset :offset"
             error_log("Manticore config script not found: {$config_script}");
             return;
         }
+        
+        error_log("Manticore config script found: {$config_script}");
 
         try {
             // Генерируем конфигурацию Manticore
+            error_log("updateManticoreIndexes: генерирую конфигурацию");
             $output = [];
             $return_var = 0;
             exec("php " . escapeshellarg($config_script) . " 2>&1", $output, $return_var);
@@ -1515,6 +1520,8 @@ limit :limit offset :offset"
                 error_log("Failed to generate Manticore config: " . implode("\n", $output));
                 return;
             }
+            
+            error_log("updateManticoreIndexes: конфигурация сгенерирована успешно");
 
             $config_content = implode("\n", $output);
 
@@ -1543,10 +1550,13 @@ limit :limit offset :offset"
             ];
 
             // Выполняем команды
+            error_log("updateManticoreIndexes: начинаю выполнение команд");
             foreach ($commands as $cmd_data) {
                 $cmd = $cmd_data['cmd'];
                 $output = [];
                 $return_var = 0;
+
+                error_log("updateManticoreIndexes: выполняю команду: " . substr($cmd, 0, 100));
 
                 // Пробуем сначала через sudo, если не получится - напрямую
                 if (!empty($cmd_data['use_sudo'])) {
@@ -1557,6 +1567,8 @@ limit :limit offset :offset"
                     // Если sudo не сработал, пробуем напрямую (для случая, когда PHP запущен от root)
                     exec($cmd . " 2>&1", $output, $return_var);
                 }
+                
+                error_log("updateManticoreIndexes: команда выполнена, код возврата: {$return_var}");
 
                 if ($return_var !== 0) {
                     $output_str = implode("\n", $output);
@@ -1573,8 +1585,10 @@ limit :limit offset :offset"
 
             // Удаляем временный файл
             @unlink($tmp_config);
+            error_log("updateManticoreIndexes: завершено успешно");
         } catch (\Exception $e) {
             error_log("Error updating Manticore indexes: " . $e->getMessage());
+            error_log("Error updating Manticore indexes: trace: " . $e->getTraceAsString());
         }
     }
 }
