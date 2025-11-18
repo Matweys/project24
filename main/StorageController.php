@@ -663,12 +663,15 @@ where id = :id and folder is true"
 
             // Создаем filter_query только если индекс существует
             if ($index_exists) {
+                $filter_query = ['filter' => [], 'values' => [], 'text_values' => []];
+                
                 if (!empty($filter_data['filter_name']) && is_string($filter_data['filter_name'])) {
                     $filter_query['text_values'][] = sprintf('@name %s', $filter_data['filter_name']);
                 }
             } else {
                 // Если индекс не существует, логируем и не создаем filter_query
                 error_log("Индекс Manticore {$file_table}_filter не существует. Фильтрация недоступна.");
+                $filter_query = null;
             }
 
             foreach ($storage['attributes'] as $v) {
