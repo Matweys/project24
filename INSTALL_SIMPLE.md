@@ -463,46 +463,6 @@ php check_manticore.php
 
 После настройки sudo индексы будут обновляться автоматически. Ручное обновление индексов больше не требуется.
 
-Для автоматического обновления индексов нужно настроить sudo без пароля для пользователя веб-сервера (обычно `www-data`):
-
-```bash
-# Определяем пользователя веб-сервера
-WEB_USER=$(ps aux | grep "php-fpm: pool" | grep -v grep | head -1 | awk '{print $1}')
-
-# Если не определился, используем www-data
-if [ -z "$WEB_USER" ]; then
-    WEB_USER="www-data"
-fi
-
-echo "Пользователь веб-сервера: $WEB_USER"
-
-# Настраиваем sudo без пароля для команд Manticore
-cat > /etc/sudoers.d/manticore-update << 'EOF'
-www-data ALL=(ALL) NOPASSWD: /bin/cp
-www-data ALL=(ALL) NOPASSWD: /bin/systemctl
-www-data ALL=(ALL) NOPASSWD: /usr/bin/su
-EOF
-
-# Устанавливаем правильные права
-chmod 0440 /etc/sudoers.d/manticore-update
-
-# Проверяем синтаксис
-sudo visudo -c -f /etc/sudoers.d/manticore-update
-```
-
-**Проверка настройки:**
-
-```bash
-# Тест sudo (должно работать без пароля)
-sudo -u www-data sudo -n /bin/cp /etc/manticoresearch/manticore.conf /tmp/test.conf 2>&1
-```
-
-Если команда выполнилась без ошибок, автоматизация настроена правильно.
-
-**Альтернатива:** Если PHP-FPM запущен от root (не рекомендуется для продакшена), автоматизация будет работать без дополнительных настроек.
-
-После настройки sudo индексы будут обновляться автоматически. Ручное обновление индексов больше не требуется.
-
 ---
 
 ## Просмотр логов (если что-то не работает)
