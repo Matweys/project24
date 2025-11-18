@@ -129,6 +129,9 @@ class StorageController extends BaseController
                 } catch (\PDOException $e) {
                     error_log((string) $e);
                 }
+
+                // Обновляем индексы Manticore после удаления файлов
+                $this->updateManticoreIndexes();
             }
 
             if ($affected_files && $new_id) {
@@ -314,6 +317,9 @@ set modified = now(), name = :name".(
                 } catch (\PDOException $e) {
                     error_log((string) $e);
                 }
+
+                // Обновляем индексы Manticore после удаления файлов
+                $this->updateManticoreIndexes();
 
                 if ($xhr) {
                     http_response_code(204);
@@ -1460,6 +1466,12 @@ limit :limit offset :offset"
                 } catch (\PDOException $e) {
                     error_log((string) $e);
                 }
+
+                // Обновляем индексы Manticore после удаления файлов
+                $this->updateManticoreIndexes();
+
+                // Обновляем индексы Manticore после загрузки файлов
+                $this->updateManticoreIndexes();
             }
         } catch (ElseException $e) {
         }
@@ -1476,5 +1488,93 @@ limit :limit offset :offset"
         }
 
         http_response_code(204);
+    }
+
+    /**
+     * Автоматическое обновление конфигурации Manticore и создание индексов
+     * Вызывается после загрузки файлов
+     */
+    protected function updateManticoreIndexes(): void
+    {
+        $project_dir = dirname(__DIR__);
+        $config_script = $project_dir . '/doc/manticore.conf.debian.sample';
+        $manticore_config = '/etc/manticoresearch/manticore.conf';
+
+        if (!file_exists($config_script)) {
+            error_log("Manticore config script not found: {$config_script}");
+            return;
+        }
+
+        try {
+            // Генерируем конфигурацию Manticore
+            $output = [];
+            $return_var = 0;
+            exec("php " . escapeshellarg($config_script) . " 2>&1", $output, $return_var);
+
+            if ($return_var !== 0) {
+                error_log("Failed to generate Manticore config: " . implode("\n", $output));
+                return;
+            }
+
+            $config_content = implode("\n", $output);
+
+            // Сохраняем во временный файл
+            $tmp_config = sys_get_temp_dir() . '/manticore_config_' . uniqid() . '.conf';
+            if (file_put_contents($tmp_config, $config_content) === false) {
+                error_log("Failed to write temporary Manticore config");
+                return;
+            }
+
+            // Копируем конфигурацию (требуются права root или sudo)
+            $commands = [
+                [
+                    'cmd' => "cp " . escapeshellarg($tmp_config) . " " . escapeshellarg($manticore_config),
+                    'use_sudo' => true,
+                ],
+                [
+                    'cmd' => "systemctl restart manticore",
+                    'use_sudo' => true,
+                ],
+                [
+                    'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate"),
+                    'use_sudo' => true,
+                    'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
+                ],
+            ];
+
+            // Выполняем команды
+            foreach ($commands as $cmd_data) {
+                $cmd = $cmd_data['cmd'];
+                $output = [];
+                $return_var = 0;
+
+                // Пробуем сначала через sudo, если не получится - напрямую
+                if (!empty($cmd_data['use_sudo'])) {
+                    exec("sudo " . $cmd . " 2>&1", $output, $return_var);
+                }
+                
+                if ($return_var !== 0) {
+                    // Если sudo не сработал, пробуем напрямую (для случая, когда PHP запущен от root)
+                    exec($cmd . " 2>&1", $output, $return_var);
+                }
+
+                if ($return_var !== 0) {
+                    $output_str = implode("\n", $output);
+                    
+                    // Для indexer ошибка "no tables found" - это нормально, если хранилищ еще нет
+                    if (!empty($cmd_data['ignore_no_tables']) && strpos($output_str, 'no tables found') !== false) {
+                        // Это нормально, игнорируем
+                        continue;
+                    }
+                    
+                    error_log("Manticore update command failed: {$cmd} - " . $output_str);
+                }
+            }
+
+            // Удаляем временный файл
+            @unlink($tmp_config);
+        } catch (\Exception $e) {
+            error_log("Error updating Manticore indexes: " . $e->getMessage());
+        }
     }
 }
