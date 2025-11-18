@@ -425,7 +425,7 @@ fi
 # Настраиваем sudo без пароля для команд Manticore
 echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/cp /tmp/manticore_config*.conf /etc/manticoresearch/manticore.conf" | sudo tee /etc/sudoers.d/manticore-update
 echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart manticore" | sudo tee -a /etc/sudoers.d/manticore-update
-echo "$WEB_USER ALL=(ALL) NOPASSWD: /usr/bin/su - manticore -s /bin/bash -c *" | sudo tee -a /etc/sudoers.d/manticore-update
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /usr/bin/su - manticore -s /bin/bash -c \"indexer --all --rotate\"" | sudo tee -a /etc/sudoers.d/manticore-update
 
 # Проверяем синтаксис
 sudo visudo -c -f /etc/sudoers.d/manticore-update
