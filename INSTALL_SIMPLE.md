@@ -483,3 +483,40 @@ systemctl status postgresql
 systemctl status manticore
 ```
 
+---
+
+## Обновление проекта
+
+Если нужно обновить проект до последней версии из репозитория:
+
+```bash
+cd /var/www/project24
+
+# Сохранение локальных изменений (если есть)
+git stash
+
+# Получение обновлений
+git pull origin main
+
+# Если были локальные изменения, вернуть их
+git stash pop
+
+# Применение новых миграций (если есть)
+export PGPASSWORD='ваш_пароль_бд'
+for file in db/20*.sql; do
+    psql -h localhost -U app_user -d app_db -f "$file" 2>&1 | grep -v "ERROR\|NOTICE" || true
+done
+
+# Если были изменения в зависимостях
+composer install --no-dev --optimize-autoloader
+
+# Если были изменения во фронтенде
+cd /var/www/project24/main && npm install && npm run compile && npm run compress && npm run update_asset_version
+cd /var/www/project24/auth && npm install && npm run compile:main.css && npm run compile:main.js && npm run update_asset_version
+```
+
+**Примечание:** 
+- Обычно перезапуск сервисов не требуется — PHP загружает код при каждом запросе
+- Если были изменения в конфигурации Nginx или PHP, перезапустите соответствующие сервисы
+- SQL-скрипты для удаления дубликатов (`db/20241118_*.sql`) нужны только если в базе есть дубликаты — на новом сервере их выполнять не обязательно
+
