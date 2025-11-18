@@ -32,30 +32,54 @@ class StorageController extends BaseController
             if (($_POST['action'] ?? null) === 'action_delete') {
                 try {
                     if ($ids) {
+                        $deleted_count = 0;
+                        $errors = [];
+
                         foreach ($ids as $storage_id) {
                             try {
-                                $r = $this->db->prepare("insert into gue_jobs (job_id, args, created_at, job_type, priority, queue, run_at, updated_at) values (?, ?, current_timestamp, 'delete_storage', 10, 'queue', current_timestamp, current_timestamp)");
+                                // Проверяем, существует ли хранилище
+                                $r = $this->db->prepare('SELECT id FROM storage WHERE id = ?');
+                                $r->execute([$storage_id]);
+                                if (!$r->fetchColumn()) {
+                                    $errors[] = sprintf(__('Storage with ID %d does not exist.'), $storage_id);
+                                    continue;
+                                }
+
+                                // Проверяем, не создана ли уже задача на удаление этого хранилища
+                                $r = $this->db->prepare("SELECT job_id FROM gue_jobs WHERE job_type = 'delete_storage' AND queue = 'queue' AND error_count = 0 AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ?");
+                                $r->execute([$storage_id]);
+                                if ($r->fetchColumn()) {
+                                    $errors[] = sprintf(__('Deletion task for storage ID %d already exists.'), $storage_id);
+                                    continue;
+                                }
+
+                                // Создаем задачу на удаление
+                                $r = $this->db->prepare("insert into gue_jobs (job_id, args, created_at, job_type, priority, queue, run_at, updated_at) values (?, (json_build_object('storage_id', (?)::int, 'user_id', (?)::int)::text)::bytea, current_timestamp, 'delete_storage', 10, 'queue', current_timestamp, current_timestamp)");
 
                                 $r->execute([
                                     \PgIto\FastUlid\FastUlid::gen(),
-                                    json_encode(
-                                        [
-                                            'storage_id' => $storage_id,
-                                            'user_id' => $this->current_user['id'],
-                                        ],
-                                        JSON_UNESCAPED_UNICODE
-                                    ),
+                                    $storage_id,
+                                    $this->current_user['id'],
                                 ]);
+
+                                ++$deleted_count;
                             } catch (\PDOException $e) {
                                 error_log((string) $e);
+                                $errors[] = sprintf(__('Error deleting storage ID %d: %s'), $storage_id, $e->getMessage());
                             }
                         }
 
-                        if ($ids) {
-                            flash(sprintf(_n('File storage has been deleted.', '%d file storages have been deleted.', count($ids)), count($ids)));
+                        if ($deleted_count > 0) {
+                            flash(sprintf(_n('File storage has been deleted.', '%d file storages have been deleted.', $deleted_count), $deleted_count));
+                        }
+
+                        if ($errors) {
+                            flash(implode('<br>', $errors), 'error');
                         }
                     }
                 } catch (ElseException $e) {
+                    flash(__('An error occurred while deleting storage.'), 'error');
+                    error_log((string) $e);
                 }
             }
         }
@@ -588,3 +612,4 @@ LIMIT :limit OFFSET :offset"
         return $rv;
     }
 }
+
