@@ -797,8 +797,18 @@ where id = :id and folder is true"
         if ($filter_query) {
             $offset = (int) max(0, $page * $page_size);
 
-            $sphinx = new \PDO($this->config['sphinx_uri'] ?? null);
-            $sphinx->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            try {
+                $sphinx = new \PDO($this->config['sphinx_uri'] ?? null);
+                $sphinx->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            } catch (\PDOException $e) {
+                error_log("Не удалось подключиться к Manticore для фильтрации: " . $e->getMessage());
+                $sphinx = null;
+            }
+            
+            if (!$sphinx) {
+                // Если Manticore недоступен, фильтр не работает
+                $filter_query = null;
+            }
 
             $folder_ids = null;
 
@@ -820,7 +830,10 @@ where id = :id and folder is true"
                 ).')'] : []
             ));
 
-            $r = $sphinx->prepare(sprintf("select id from {$file_table}_filter where %s limit :offset, :page_size", implode(' and ', $query)));
+            // Если нет условий, но есть текстовый поиск, добавляем условие 1=1
+            $where_clause = !empty($query) ? implode(' and ', $query) : '1=1';
+            
+            $r = $sphinx->prepare(sprintf("select id from {$file_table}_filter where %s limit :offset, :page_size", $where_clause));
 
             if ($folder_ids) {
                 foreach ($folder_ids as $i => $v) {
@@ -859,25 +872,41 @@ where id = :id and folder is true"
                 $r->execute();
             } catch (\PDOException $e) {
                 if ('42000' === $e->getCode()) {
-                    error_log((string) $e);
+                    error_log("Ошибка выполнения запроса к Manticore: " . (string) $e);
+                    $filter_ids = [];
+                    $count = 0;
+                    $num_pages = 0;
                 } else {
+                    error_log("Критическая ошибка Manticore: " . (string) $e);
                     throw $e;
                 }
             }
 
-            $filter_ids = $r->fetchAll(\PDO::FETCH_COLUMN);
+            if (isset($r) && $r) {
+                $filter_ids = $r->fetchAll(\PDO::FETCH_COLUMN);
 
-            $r = $sphinx->prepare('show meta');
-            $r->execute();
+                try {
+                    $r = $sphinx->prepare('show meta');
+                    $r->execute();
 
-            $meta = [];
+                    $meta = [];
 
-            while ($row = $r->fetch(\PDO::FETCH_ASSOC)) {
-                $meta[$row['Variable_name']] = $row['Value'];
+                    while ($row = $r->fetch(\PDO::FETCH_ASSOC)) {
+                        $meta[$row['Variable_name']] = $row['Value'];
+                    }
+
+                    $count = (int) ($meta['total_found'] ?? 0);
+                    $num_pages = $page_size ? ceil($count / $page_size) : 0;
+                } catch (\PDOException $e) {
+                    error_log("Ошибка получения метаданных Manticore: " . (string) $e);
+                    $count = count($filter_ids);
+                    $num_pages = $page_size ? ceil($count / $page_size) : 0;
+                }
+            } else {
+                $filter_ids = [];
+                $count = 0;
+                $num_pages = 0;
             }
-
-            $count = (int) ($meta['total_found'] ?? 0);
-            $num_pages = $page_size ? ceil($count / $page_size) : 0;
 
             if ($filter_ids) {
                 $sort_by = (isset($sort_fields[$sort_idx]) ? $sort_fields[$sort_idx][(int) ((bool) $sort_desc)] : 'folder, name');
