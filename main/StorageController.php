@@ -652,15 +652,23 @@ where id = :id and folder is true"
             }
 
             $file_table_meta = [];
+            $index_exists = false;
 
             if ($r) {
                 while ($row = $r->fetch(\PDO::FETCH_ASSOC)) {
                     $file_table_meta[$row['Field']] = $row['Type'];
                 }
+                $index_exists = true; // Индекс существует, если DESCRIBE прошел успешно
             }
 
-            if (!empty($filter_data['filter_name']) && is_string($filter_data['filter_name'])) {
-                $filter_query['text_values'][] = sprintf('@name %s', $filter_data['filter_name']);
+            // Создаем filter_query только если индекс существует
+            if ($index_exists) {
+                if (!empty($filter_data['filter_name']) && is_string($filter_data['filter_name'])) {
+                    $filter_query['text_values'][] = sprintf('@name %s', $filter_data['filter_name']);
+                }
+            } else {
+                // Если индекс не существует, логируем и не создаем filter_query
+                error_log("Индекс Manticore {$file_table}_filter не существует. Фильтрация недоступна.");
             }
 
             foreach ($storage['attributes'] as $v) {
