@@ -37,10 +37,12 @@ class StorageController extends BaseController
 
                         foreach ($ids as $storage_id) {
                             try {
-                                // Проверяем, существует ли хранилище
-                                $r = $this->db->prepare('SELECT id FROM storage WHERE id = ?');
+                                // Получаем информацию о хранилище
+                                $r = $this->db->prepare('SELECT id, uid FROM storage WHERE id = ?');
                                 $r->execute([$storage_id]);
-                                if (!$r->fetchColumn()) {
+                                $storage = $r->fetch(\PDO::FETCH_ASSOC);
+                                
+                                if (!$storage) {
                                     // Удаляем старые задачи для несуществующего хранилища
                                     try {
                                         $r = $this->db->prepare("DELETE FROM gue_jobs WHERE job_type = 'delete_storage' AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ?");
@@ -52,42 +54,71 @@ class StorageController extends BaseController
                                     continue;
                                 }
 
-                                // Проверяем, не создана ли уже задача на удаление этого хранилища
-                                // Проверяем только активные задачи (error_count = 0) для существующего хранилища
-                                // Также проверяем, что задача не старше 1 часа (возможно, она зависла)
-                                $r = $this->db->prepare("SELECT job_id FROM gue_jobs WHERE job_type = 'delete_storage' AND queue = 'queue' AND error_count = 0 AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ? AND created_at > NOW() - INTERVAL '1 hour'");
-                                $r->execute([$storage_id]);
-                                if ($r->fetchColumn()) {
-                                    $errors[] = sprintf(__('Deletion task for storage ID %d already exists.'), $storage_id);
-                                    continue;
-                                }
-                                
-                                // Удаляем старые зависшие задачи для этого хранилища
+                                $this->db->beginTransaction();
+
                                 try {
-                                    $r = $this->db->prepare("DELETE FROM gue_jobs WHERE job_type = 'delete_storage' AND (convert_from(args, 'utf8')::json->>'storage_id')::int = ? AND created_at <= NOW() - INTERVAL '1 hour'");
+                                    // Получаем все файлы из таблицы хранилища для удаления физических файлов
+                                    $file_table = $this->Storage->getFileTable($storage_id);
+                                    if ($file_table) {
+                                        $r = $this->db->prepare("SELECT file, image FROM $file_table WHERE folder is not true");
+                                        $r->execute();
+                                        $files = $r->fetchAll(\PDO::FETCH_ASSOC);
+
+                                        // Удаляем физические файлы
+                                        if ($files && !empty($this->config['upload'])) {
+                                            $upload_path = rtrim($this->config['upload']['path'], '/') . '/' . $storage['uid'];
+                                            
+                                            $file_paths = array_filter(array_column($files, 'file'));
+                                            $image_paths = array_filter(array_column($files, 'image'));
+                                            
+                                            // Удаляем файлы
+                                            foreach (array_merge($file_paths, $image_paths) as $file_path) {
+                                                if ($file_path) {
+                                                    $full_path = $upload_path . '/' . $file_path;
+                                                    if (is_file($full_path)) {
+                                                        try {
+                                                            unlink($full_path);
+                                                        } catch (\Exception $e) {
+                                                            error_log((string) $e);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        // Удаляем таблицу файлов
+                                        $this->StorageFileTable->deleteFileTable($storage_id);
+                                    }
+
+                                    // Удаляем задачи из очереди для этого хранилища
+                                    try {
+                                        $r = $this->db->prepare("DELETE FROM gue_jobs WHERE (convert_from(args, 'utf8')::json->>'storage_id')::int = ?");
+                                        $r->execute([$storage_id]);
+                                    } catch (\PDOException $e) {
+                                        error_log((string) $e);
+                                    }
+
+                                    // Удаляем запись хранилища (связанные данные удалятся каскадно)
+                                    $r = $this->db->prepare('DELETE FROM storage WHERE id = ?');
                                     $r->execute([$storage_id]);
-                                } catch (\PDOException $e) {
-                                    error_log((string) $e);
+
+                                    $this->db->commit();
+                                    ++$deleted_count;
+                                } catch (\Exception $e) {
+                                    $this->db->rollBack();
+                                    throw $e;
                                 }
-
-                                // Создаем задачу на удаление
-                                $r = $this->db->prepare("insert into gue_jobs (job_id, args, created_at, job_type, priority, queue, run_at, updated_at) values (?, (json_build_object('storage_id', (?)::int, 'user_id', (?)::int)::text)::bytea, current_timestamp, 'delete_storage', 10, 'queue', current_timestamp, current_timestamp)");
-
-                                $r->execute([
-                                    \PgIto\FastUlid\FastUlid::gen(),
-                                    $storage_id,
-                                    $this->current_user['id'],
-                                ]);
-
-                                ++$deleted_count;
                             } catch (\PDOException $e) {
+                                error_log((string) $e);
+                                $errors[] = sprintf(__('Error deleting storage ID %d: %s'), $storage_id, $e->getMessage());
+                            } catch (\Exception $e) {
                                 error_log((string) $e);
                                 $errors[] = sprintf(__('Error deleting storage ID %d: %s'), $storage_id, $e->getMessage());
                             }
                         }
 
                         if ($deleted_count > 0) {
-                            flash(sprintf(_n('Deletion task for file storage has been created.', 'Deletion tasks for %d file storages have been created.', $deleted_count), $deleted_count));
+                            flash(sprintf(_n('File storage has been deleted.', '%d file storages have been deleted.', $deleted_count), $deleted_count));
                         }
 
                         if ($errors) {
