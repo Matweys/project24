@@ -243,6 +243,9 @@ VALUES (
                     error_log((string) $e);
                 }
 
+                // Автоматическое обновление индексов Manticore
+                $this->updateManticoreIndexes();
+
                 header('Location: '.$return_url);
                 return;
             }
@@ -400,6 +403,9 @@ WHERE id = :id'
                 } catch (\PDOException $e) {
                     error_log((string) $e);
                 }
+
+                // Автоматическое обновление индексов Manticore
+                $this->updateManticoreIndexes();
 
                 header('Location: '.$return_url);
                 return;
@@ -658,6 +664,76 @@ LIMIT :limit OFFSET :offset"
         ]);
 
         return $rv;
+    }
+
+    /**
+     * Автоматическое обновление конфигурации Manticore и создание индексов
+     * Вызывается после создания или обновления хранилища
+     */
+    protected function updateManticoreIndexes(): void
+    {
+        $project_dir = dirname(__DIR__);
+        $config_script = $project_dir . '/doc/manticore.conf.debian.sample';
+        $manticore_config = '/etc/manticoresearch/manticore.conf';
+
+        if (!file_exists($config_script)) {
+            error_log("Manticore config script not found: {$config_script}");
+            return;
+        }
+
+        try {
+            // Генерируем конфигурацию Manticore
+            $output = [];
+            $return_var = 0;
+            exec("php " . escapeshellarg($config_script) . " 2>&1", $output, $return_var);
+
+            if ($return_var !== 0) {
+                error_log("Failed to generate Manticore config: " . implode("\n", $output));
+                return;
+            }
+
+            $config_content = implode("\n", $output);
+
+            // Сохраняем во временный файл
+            $tmp_config = sys_get_temp_dir() . '/manticore_config_' . uniqid() . '.conf';
+            if (file_put_contents($tmp_config, $config_content) === false) {
+                error_log("Failed to write temporary Manticore config");
+                return;
+            }
+
+            // Копируем конфигурацию (требуются права root или sudo)
+            $commands = [
+                "cp " . escapeshellarg($tmp_config) . " " . escapeshellarg($manticore_config),
+                "systemctl restart manticore",
+                "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate") . " 2>&1",
+            ];
+
+            // Пробуем выполнить команды через sudo (если настроено) или напрямую
+            foreach ($commands as $cmd) {
+                $output = [];
+                $return_var = 0;
+
+                // Пробуем сначала через sudo, если не получится - напрямую
+                exec("sudo " . $cmd . " 2>&1", $output, $return_var);
+                if ($return_var !== 0) {
+                    // Если sudo не сработал, пробуем напрямую (для случая, когда PHP запущен от root)
+                    exec($cmd . " 2>&1", $output, $return_var);
+                }
+
+                if ($return_var !== 0 && strpos($cmd, 'indexer') !== false) {
+                    // Для indexer ошибка "no tables found" - это нормально, если хранилищ еще нет
+                    $output_str = implode("\n", $output);
+                    if (strpos($output_str, 'no tables found') === false) {
+                        error_log("Manticore indexer failed: " . $output_str);
+                    }
+                }
+            }
+
+            // Удаляем временный файл
+            @unlink($tmp_config);
+        } catch (\Exception $e) {
+            error_log("Error updating Manticore indexes: " . $e->getMessage());
+        }
     }
 }
 

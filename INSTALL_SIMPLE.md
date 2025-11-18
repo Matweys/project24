@@ -255,7 +255,8 @@ systemctl status manticore
 # Индексы появятся автоматически после создания первого хранилища через веб-интерфейс
 su - manticore -s /bin/bash -c "indexer --all --rotate" || echo "Индексация пропущена: хранилищ еще нет"
 
-# После создания первого хранилища через веб-интерфейс выполните:
+# ПРИМЕЧАНИЕ: Начиная с текущей версии, индексы обновляются автоматически при создании хранилищ.
+# Если автоматизация не настроена (см. шаг 13), выполните эти команды вручную после создания первого хранилища:
 # 1. Обновите конфигурацию: php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf && mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
 # 2. Перезапустите Manticore: systemctl restart manticore
 # 3. Создайте индексы: su - manticore -s /bin/bash -c "indexer --all --rotate"
@@ -406,23 +407,33 @@ systemctl enable manticore
 
 **Примечание:** Если Manticore выдает ошибку "no tables found" при индексации — это нормально. Индексы появятся автоматически после создания первого хранилища.
 
-**Важно:** После создания первого хранилища через веб-интерфейс нужно:
-1. Обновить конфигурацию Manticore:
-   ```bash
-   cd /var/www/project24
-   php doc/manticore.conf.debian.sample > /tmp/manticore_config.conf
-   mv /tmp/manticore_config.conf /etc/manticoresearch/manticore.conf
-   ```
-2. Перезапустить Manticore:
-   ```bash
-   systemctl restart manticore
-   ```
-3. Создать индексы:
-   ```bash
-   su - manticore -s /bin/bash -c "indexer --all --rotate"
-   ```
+**Важно:** Начиная с версии проекта, индексы Manticore обновляются автоматически при создании или изменении хранилища. 
 
-После этого фильтрация и поиск будут работать. При создании новых хранилищ повторяйте эти шаги.
+**Настройка автоматизации (требуется один раз):**
+
+Для автоматического обновления индексов нужно настроить sudo без пароля для пользователя веб-сервера (обычно `www-data`):
+
+```bash
+# Определяем пользователя веб-сервера
+WEB_USER=$(ps aux | grep -E 'php-fpm|nginx' | grep -v grep | head -1 | awk '{print $1}')
+
+# Если не определился, используем www-data
+if [ -z "$WEB_USER" ]; then
+    WEB_USER="www-data"
+fi
+
+# Настраиваем sudo без пароля для команд Manticore
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/cp /tmp/manticore_config*.conf /etc/manticoresearch/manticore.conf" | sudo tee /etc/sudoers.d/manticore-update
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /bin/systemctl restart manticore" | sudo tee -a /etc/sudoers.d/manticore-update
+echo "$WEB_USER ALL=(ALL) NOPASSWD: /usr/bin/su - manticore -s /bin/bash -c *" | sudo tee -a /etc/sudoers.d/manticore-update
+
+# Проверяем синтаксис
+sudo visudo -c -f /etc/sudoers.d/manticore-update
+```
+
+**Альтернатива:** Если PHP-FPM запущен от root (не рекомендуется для продакшена), автоматизация будет работать без дополнительных настроек.
+
+После настройки sudo индексы будут обновляться автоматически при создании или изменении хранилищ через веб-интерфейс.
 
 ---
 
