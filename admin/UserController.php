@@ -327,11 +327,18 @@ where id = :id"
             "select u.*, u.isactive active, roles.roles
 from {$this->config['auth']['table_users']} u
 left join (
-    select m.user_id, string_agg(rl.title, '. ' order by rl.title) as roles
-    from {$this->config['auth']['table_roles']} r
-    join {$this->config['auth']['table_roles_users']} m on (m.role_id = r.id)
-    left join {$this->config['auth']['table_roles_langs']} rl on (rl.user_role_id = r.id and rl.language_id = :language_id)
-    group by m.user_id
+    select rt.user_id, string_agg(distinct rt.role_title, '. ' order by rt.role_title) as roles
+    from (
+        select m.user_id, 
+               (select rl.title from {$this->config['auth']['table_roles_langs']} rl 
+                join language l on (l.id = rl.language_id and l.id = :language_id)
+                where rl.user_role_id = r.id 
+                limit 1) as role_title
+        from {$this->config['auth']['table_roles']} r
+        join {$this->config['auth']['table_roles_users']} m on (m.role_id = r.id)
+    ) rt
+    where rt.role_title is not null
+    group by rt.user_id
 ) roles on roles.user_id = u.id
 ".($search_query ? "where search @@ plainto_tsquery('russian', :search)" : '')."
 order by {$sort_by}
