@@ -350,11 +350,13 @@ order by sort, id'
     public function getStoragePermissions(?string $lang = null)
     {
         $r = $this->db->prepare(
-            'select storage_permission.*, storage_permission_lang.title
+            'select storage_permission.*, 
+            (select spl.title from storage_permission_lang spl 
+             join language l on (l.id = spl.language_id and l.name = ? and l.active is true)
+             where spl.storage_permission_id = storage_permission.id 
+             limit 1) as title
 from storage_permission
-left join language on (language.name = ? and language.active is true)
-left join storage_permission_lang on (storage_permission_lang.storage_permission_id = storage_permission.id and storage_permission_lang.language_id = language.id)
-order by storage_permission_lang.title'
+order by storage_permission.id'
         );
         $r->execute([$lang]);
         return $r->fetchAll(\PDO::FETCH_ASSOC);
@@ -363,15 +365,21 @@ order by storage_permission_lang.title'
     public function getUserPermissions(int $storage_id, ?string $lang = null)
     {
         if ($storage_id) {
+            // Используем подзапрос для получения только одной языковой записи, чтобы избежать дубликатов
             $r = $this->db->prepare(
-                'select m.*, m.permission_id as permission, sp.*, spl.title, u.email, u.isactive
+                'select m.storage_id, m.user_id, m.permission_id as permission, 
+                sp.id, sp.name,
+                (select spl.title from storage_permission_lang spl 
+                 join language l on (l.id = spl.language_id and l.name = :lang and l.active is true)
+                 where spl.storage_permission_id = sp.id 
+                 limit 1) as title,
+                u.id as u_id, u.email, u.isactive
 from storage_user_permission m
 left join public.user u on u.id = m.user_id
 left join storage_permission sp on sp.id = m.permission_id
-left join language on (language.name = :lang and language.active is true)
-left join storage_permission_lang spl on (spl.storage_permission_id = sp.id and spl.language_id = language.id)
 where m.storage_id = :storage_id
-order by u.email, spl.title'
+group by m.storage_id, m.user_id, m.permission_id, sp.id, sp.name, u.id, u.email, u.isactive
+order by u.email'
             );
 
             $r->execute([
@@ -379,7 +387,25 @@ order by u.email, spl.title'
                 ':storage_id' => $storage_id,
             ]);
 
-            return $r->fetchAll(\PDO::FETCH_ASSOC);
+            $results = $r->fetchAll(\PDO::FETCH_ASSOC);
+            
+            // Преобразуем результаты обратно в ожидаемый формат
+            $formatted = [];
+            foreach ($results as $row) {
+                $formatted[] = [
+                    'storage_id' => $row['storage_id'],
+                    'user_id' => $row['user_id'],
+                    'permission_id' => $row['permission'],
+                    'permission' => $row['permission'],
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'title' => $row['title'],
+                    'email' => $row['email'],
+                    'isactive' => $row['isactive'],
+                ];
+            }
+            
+            return $formatted;
         }
     }
 
