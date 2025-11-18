@@ -26,8 +26,23 @@ try {
     echo "✓ Подключение успешно\n\n";
     
     // Получаем список всех индексов
-    $r = $sphinx->query("SHOW TABLES");
-    $tables = $r->fetchAll(\PDO::FETCH_COLUMN);
+    try {
+        $r = $sphinx->query("SHOW TABLES");
+        $tables = $r->fetchAll(\PDO::FETCH_COLUMN);
+    } catch (\PDOException $e) {
+        // Пробуем альтернативный способ
+        try {
+            $r = $sphinx->query("SHOW TABLES");
+            $tables = [];
+            while ($row = $r->fetch(\PDO::FETCH_NUM)) {
+                $tables[] = $row[0];
+            }
+        } catch (\PDOException $e2) {
+            echo "✗ Ошибка получения списка индексов: " . $e2->getMessage() . "\n";
+            echo "Попробуйте проверить логи: tail -f /var/log/manticore/searchd.log\n";
+            exit(1);
+        }
+    }
     
     if (empty($tables)) {
         echo "⚠ Индексы не найдены. Нужно создать индексы.\n";
