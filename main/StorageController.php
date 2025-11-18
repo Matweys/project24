@@ -1324,8 +1324,11 @@ limit :limit offset :offset"
             }
 
             list($error, $upload) = FileUpload::upload($upload_config, 'file', $last_file_id);
+            
+            error_log("FileUpload::upload completed, error: " . ($error ?: 'none') . ", filename: " . ($upload['filename'] ?? 'none'));
 
             if (!$error && !empty($upload['filename'])) {
+                error_log("Entering file upload success block, storage_id: " . ($storage['id'] ?? 'unknown'));
                 $existing_file_id = $this->Storage->checkFilenameUnique($file_table, $upload['name'] ?? '', $folder['id'] ?? null);
 
                 if ($existing_file_id && true !== $file_overwrite) {
@@ -1467,13 +1470,13 @@ limit :limit offset :offset"
                     error_log((string) $e);
                 }
 
-                // Обновляем индексы Manticore после удаления файлов
-                $this->updateManticoreIndexes();
-
                 // Обновляем индексы Manticore после загрузки файлов
+                error_log("Before updateManticoreIndexes call, storage_id: " . ($storage['id'] ?? 'unknown'));
                 $this->updateManticoreIndexes();
+                error_log("After updateManticoreIndexes call");
             }
         } catch (ElseException $e) {
+            error_log("ElseException caught in upload method: " . $e->getMessage());
         }
 
         if ($error) {
