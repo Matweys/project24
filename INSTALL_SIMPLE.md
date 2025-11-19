@@ -28,10 +28,17 @@ apt upgrade -y
 # Установка всех необходимых пакетов
 apt install -y postgresql postgresql-contrib nginx php8.1-fpm php8.1-pgsql php8.1-mysql php8.1-imagick php8.1-gd php8.1-mbstring php8.1-zip php8.1-bcmath php8.1-intl php8.1-xml composer git
 
+# Проверка установки PHP расширений (особенно важно php8.1-zip для скачивания файлов)
+php -m | grep -E "zip|pgsql|mysql|imagick|gd|mbstring|bcmath|intl|xml" || echo "Внимание: некоторые расширения не установлены"
+
 # Установка Node.js 18.x (требуется для компиляции фронтенда)
 curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt install -y nodejs
 ```
+
+**Примечание:** 
+- `php8.1-zip` необходим для скачивания файлов в ZIP-архивах. Без этого расширения скачивание множественных файлов не будет работать.
+- Если команда проверки не выводит `zip`, переустановите расширение: `apt install --reinstall php8.1-zip && systemctl restart php8.1-fpm`
 
 ---
 
