@@ -716,6 +716,10 @@ LIMIT :limit OFFSET :offset"
                     'use_sudo' => true,
                     'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
                 ],
+                [
+                    'cmd' => "systemctl restart manticore",
+                    'use_sudo' => true,
+                ],
             ];
 
             // Выполняем команды
