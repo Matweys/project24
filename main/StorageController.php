@@ -131,7 +131,7 @@ class StorageController extends BaseController
                 }
 
                 // Обновляем индексы Manticore после удаления файлов
-                $this->updateManticoreIndexes();
+                $this->updateManticoreIndexes($storage['id'] ?? null);
             }
 
             if ($affected_files && $new_id) {
@@ -319,7 +319,7 @@ set modified = now(), name = :name".(
                 }
 
                 // Обновляем индексы Manticore после удаления файлов
-                $this->updateManticoreIndexes();
+                $this->updateManticoreIndexes($storage['id'] ?? null);
 
                 if ($xhr) {
                     http_response_code(204);
@@ -1472,7 +1472,7 @@ limit :limit offset :offset"
 
                 // Обновляем индексы Manticore после загрузки файлов
                 error_log("Before updateManticoreIndexes call, storage_id: " . ($storage['id'] ?? 'unknown'));
-                $this->updateManticoreIndexes();
+                $this->updateManticoreIndexes($storage['id'] ?? null);
                 error_log("After updateManticoreIndexes call");
             }
         } catch (ElseException $e) {
@@ -1494,10 +1494,40 @@ limit :limit offset :offset"
     }
 
     /**
+     * Ручное обновление всех индексов Manticore
+     */
+    public function reindex($storage_uid = null)
+    {
+        $this->current_user = $this->auth->loginRequired();
+        $this->Storage = new Storage($this->db);
+        $this->storages = $this->Storage->getAllowedStorages($this->current_user['id']);
+
+        $this->lang = $this->language->getCurrentLanguage($this->current_user['id']);
+        $this->load_translation($this->lang['name'] ?? null);
+        $this->setting->load($this->lang['name'] ?? null);
+
+        $storage = $this->Storage->getStorage(null, $storage_uid, $this->current_user['id']);
+
+        if (!$storage || ($storage['permission_name'] ?? null) !== 'full') {
+            http_response_code(403);
+            flash(__('No permission.'), 'error');
+            header('Location: ' . ($_GET['url'] ?? $this->config['base_url'] . '/storage/' . $storage_uid . '/'));
+            return;
+        }
+
+        // Обновляем все индексы Manticore
+        $this->updateManticoreIndexes(null);
+
+        flash('Индексы поиска обновлены.', 'success');
+        header('Location: ' . ($_GET['url'] ?? $this->config['base_url'] . '/storage/' . $storage_uid . '/'));
+    }
+
+    /**
      * Автоматическое обновление конфигурации Manticore и создание индексов
      * Вызывается после загрузки файлов
+     * @param int|null $storage_id ID хранилища для индексации конкретного индекса (если null - индексируются все)
      */
-    protected function updateManticoreIndexes(): void
+    protected function updateManticoreIndexes(?int $storage_id = null): void
     {
         error_log("updateManticoreIndexes: метод вызван");
         
@@ -1545,15 +1575,26 @@ limit :limit offset :offset"
                     'cmd' => "systemctl restart manticore",
                     'use_sudo' => true,
                 ],
-                [
-                    'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate"),
-                    'use_sudo' => true,
-                    'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
-                ],
-                [
-                    'cmd' => "systemctl restart manticore",
-                    'use_sudo' => true,
-                ],
+            ];
+
+            // Небольшая задержка перед индексацией, чтобы данные успели сохраниться в БД
+            if ($storage_id !== null) {
+                sleep(2);
+            }
+
+            $commands[] = [
+                'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg(
+                    $storage_id !== null 
+                        ? "indexer file_{$storage_id}_filter file_{$storage_id}_main --rotate"
+                        : "indexer --all --rotate"
+                ),
+                'use_sudo' => true,
+                'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
+            ];
+
+            $commands[] = [
+                'cmd' => "systemctl restart manticore",
+                'use_sudo' => true,
             ];
 
             // Выполняем команды

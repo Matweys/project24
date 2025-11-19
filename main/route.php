@@ -17,6 +17,7 @@ return [
     ['storage/permissions', \Main\StoragePermissionsController::class, 'index', 1],
     ['storage/search', \Main\StorageSearchController::class, 'index', 2], // хранилище/folder_id
     ['storage/settings', \Main\StorageSettingsController::class, 'index', 1],
+    ['storage/reindex', \Main\StorageController::class, 'reindex', 1], // хранилище
     ['storage/upload', \Main\StorageController::class, 'upload', 2], // хранилище/folder_id
 
     ['storage', \Main\StorageController::class, 'index', 2], // хранилище/folder_id

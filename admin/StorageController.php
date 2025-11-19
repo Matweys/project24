@@ -244,7 +244,7 @@ VALUES (
                 }
 
                 // Автоматическое обновление индексов Manticore
-                $this->updateManticoreIndexes();
+                $this->updateManticoreIndexes((int) $id);
 
                 header('Location: '.$return_url);
                 return;
@@ -405,7 +405,7 @@ WHERE id = :id'
                 }
 
                 // Автоматическое обновление индексов Manticore
-                $this->updateManticoreIndexes();
+                $this->updateManticoreIndexes((int) $id);
 
                 header('Location: '.$return_url);
                 return;
@@ -670,7 +670,11 @@ LIMIT :limit OFFSET :offset"
      * Автоматическое обновление конфигурации Manticore и создание индексов
      * Вызывается после создания или обновления хранилища
      */
-    protected function updateManticoreIndexes(): void
+    /**
+     * Автоматическое обновление конфигурации Manticore и создание индексов
+     * @param int|null $storage_id ID хранилища для индексации конкретного индекса (если null - индексируются все)
+     */
+    protected function updateManticoreIndexes(?int $storage_id = null): void
     {
         $project_dir = dirname(__DIR__);
         $config_script = $project_dir . '/doc/manticore.conf.debian.sample';
@@ -711,15 +715,26 @@ LIMIT :limit OFFSET :offset"
                     'cmd' => "systemctl restart manticore",
                     'use_sudo' => true,
                 ],
-                [
-                    'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg("indexer --all --rotate"),
-                    'use_sudo' => true,
-                    'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
-                ],
-                [
-                    'cmd' => "systemctl restart manticore",
-                    'use_sudo' => true,
-                ],
+            ];
+
+            // Небольшая задержка перед индексацией, чтобы данные успели сохраниться в БД
+            if ($storage_id !== null) {
+                sleep(2);
+            }
+
+            $commands[] = [
+                'cmd' => "su - manticore -s /bin/bash -c " . escapeshellarg(
+                    $storage_id !== null 
+                        ? "indexer file_{$storage_id}_filter file_{$storage_id}_main --rotate"
+                        : "indexer --all --rotate"
+                ),
+                'use_sudo' => true,
+                'ignore_no_tables' => true, // Игнорируем ошибку "no tables found"
+            ];
+
+            $commands[] = [
+                'cmd' => "systemctl restart manticore",
+                'use_sudo' => true,
             ];
 
             // Выполняем команды
