@@ -134,9 +134,6 @@ $menu = [];
 <a class="btn btn-secondary" href="<?php echo $config['base_url'].'/storage/export/'.$storage['uid'].'/'.($folder ? $folder['id'].'/' : ''); ?>" id="export-btn" style="background-color:transparent;border:none;margin:0 .125rem;padding:.125rem .25rem;" title="<?php echo __('Export file attributes to xlsx'); ?>"><img src="<?php echo $config['static_url']; ?>/assets/img/icon_export.svg"></a>
 <?php } ?>
 <?php } ?>
-<?php if ($edit_permission) { ?>
-<a class="btn btn-secondary" href="<?php echo $config['base_url'].'/storage/reindex/'.$storage['uid'].'/?'.http_build_query(['url' => $return_url]); ?>" style="margin:0 .125rem;padding:.25rem .5rem;" title="Обновить индексы поиска">Обновить</a>
-<?php } ?>
 <div class="dropdown"><button aria-expanded="false" class="btn btn-secondary" data-bs-toggle="dropdown" style="background-color:transparent;border:none;margin:.125rem;padding:.125rem;" title="<?php echo __('Show items as list or icons'); ?>"><img src="<?php echo $config['static_url']; ?>/assets/img/icon_<?php echo $view_mode ? 'grid' : 'list'; ?>.svg" style="height:24px;"></button><ul class="dropdown-menu toolbar-dropdown-menu"><li><a class="dropdown-item toolbar-dropdown-item<?php if (!$view_mode) { ?> active<?php } ?>" href="<?php echo $config['base_url'].'/storage/'.$storage['uid'].'/'.($folder ? $folder['id'].'/' : '').'?'.http_build_query(['sort' => $sort_idx, 'desc' => $sort_desc]); ?>"><?php echo __('as List'); ?></a></li><li><a class="dropdown-item toolbar-dropdown-item<?php if ($view_mode) { ?> active<?php } ?>" href="<?php echo $config['base_url'].'/storage/'.$storage['uid'].'/'.($folder ? $folder['id'].'/' : '').'?'.http_build_query(['sort' => $sort_idx, 'desc' => $sort_desc, 'view_mode' => 1]); ?>"><?php echo __('as Icons'); ?></a></li></ul></div>
 
 <div class="dropdown"><button aria-expanded="false" class="btn btn-secondary" data-bs-toggle="dropdown" style="background-color:transparent;border:none;margin:.125rem;padding:.125rem;" title="<?php echo __('Change the sort'); ?>"><img src="<?php echo $config['static_url']; ?>/assets/img/icon_sort.svg" style="height:24px;"></button><ul class="dropdown-menu toolbar-dropdown-menu"><li><a class="dropdown-item toolbar-dropdown-item<?php if (0 === $sort_idx) { ?> active<?php } ?>" href="<?php echo call_user_func($sort_url, 0, 0 === $sort_idx); ?>"><?php echo __('Filename'); ?></a></li><?php
@@ -150,6 +147,9 @@ if (!empty($storage['attributes'])) {
 <?php } ?>
 <?php if ($full_permission && !$folder) { ?>
 <a class="btn btn-secondary" href="<?php echo $config['base_url'].'/storage/log/'.$storage['uid'].'/?'.http_build_query(['url' => $_SERVER['REQUEST_URI']]); ?>" style="background-color:transparent;border:none;margin:.125rem;padding:.125rem;" title="<?php echo __('File Storage Log'); ?>"><img src="<?php echo $config['static_url']; ?>/assets/img/icon_log.svg"></a>
+<?php } ?>
+<?php if ($edit_permission) { ?>
+<a class="btn btn-secondary" href="<?php echo $config['base_url'].'/storage/reindex/'.$storage['uid'].'/?'.http_build_query(['url' => $return_url]); ?>" style="margin:0 .125rem;padding:.25rem .5rem;" title="Обновить индексы поиска">Обновить</a>
 <?php } ?>
 <?php if ($edit_permission) { ?>
 <?php if ($view_mode) { ?>
