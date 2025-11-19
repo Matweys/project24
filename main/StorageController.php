@@ -1508,7 +1508,7 @@ limit :limit offset :offset"
 
         $storage = $this->Storage->getStorage(null, $storage_uid, $this->current_user['id']);
 
-        if (!$storage || ($storage['permission_name'] ?? null) !== 'full') {
+        if (!$storage || !in_array($storage['permission_name'] ?? null, ['edit', 'full'])) {
             http_response_code(403);
             flash(__('No permission.'), 'error');
             header('Location: ' . ($_GET['url'] ?? $this->config['base_url'] . '/storage/' . $storage_uid . '/'));
