@@ -194,17 +194,78 @@ ORDER BY folder.lft, file.name"
             header("Content-Disposition: attachment; filename=\"$safe_filename\"" . ($safe_filename === $filename ? '' : "; filename*=UTF-8''" . rawurlencode($filename)));
         }
 
+        header('Content-Type: application/zip');
         header('Cache-Control: cache, must-revalidate');
         header('Cache-Control: max-age=0');
         header('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT');
         header('Pragma: public');
 
-        if (empty($this->config['debug'])) {
-            header('X-Archive-Files: zip');
+        // Собираем все файлы в массив
+        $files = [];
+        while ($row = $r->fetch(\PDO::FETCH_ASSOC)) {
+            $files[] = $row;
         }
 
-        while ($row = $r->fetch(\PDO::FETCH_ASSOC)) {
-            echo($row['crc'] ? dechex($row['crc']) : '-') . " ". $row['size'] . " " . $upload_config['nginx_zip_location'] . $row['file'] . " " . ($row['path'] ? $row['path'] . '/' : '') . $row['name'] . "\n";
+        // Проверяем, доступен ли ZipArchive
+        if (!class_exists('ZipArchive')) {
+            http_response_code(500);
+            echo 'ZIP extension is not available. Please install php-zip extension.';
+            error_log('ZIP extension is not available');
+            return;
+        }
+
+        // Используем PHP ZipArchive для создания ZIP (более надежно, чем nginx mod_zip)
+        // Если нужно использовать nginx mod_zip, установите в конфиге 'use_nginx_mod_zip' => true
+        $use_nginx_mod_zip = !empty($this->config['upload']['use_nginx_mod_zip']) && empty($this->config['debug']);
+
+        if ($use_nginx_mod_zip) {
+            // Используем nginx mod_zip (требует установки и настройки модуля)
+            header('X-Archive-Files: zip');
+            foreach ($files as $row) {
+                echo($row['crc'] ? dechex($row['crc']) : '-') . " ". $row['size'] . " " . $upload_config['nginx_zip_location'] . $row['file'] . " " . ($row['path'] ? $row['path'] . '/' : '') . $row['name'] . "\n";
+            }
+        } else {
+            // Используем PHP ZipArchive для создания ZIP
+            $tmp_zip = tempnam(sys_get_temp_dir(), 'zip_');
+            $zip = new \ZipArchive();
+            
+            if ($zip->open($tmp_zip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                http_response_code(500);
+                echo 'Failed to create ZIP archive';
+                error_log('Failed to create ZIP archive');
+                return;
+            }
+
+            // Определяем абсолютный путь к файлам
+            $base_path = $upload_config['path'];
+            if (strpos($base_path, '/') !== 0) {
+                // Относительный путь - преобразуем в абсолютный
+                if (!empty($_SERVER['DOCUMENT_ROOT'])) {
+                    $base_path = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $base_path;
+                } else {
+                    // Fallback: используем корень проекта
+                    $project_root = dirname(__DIR__);
+                    $base_path = $project_root . '/public/' . $base_path;
+                }
+            }
+
+            foreach ($files as $row) {
+                $file_path = rtrim($base_path, '/') . '/' . $row['file'];
+                $archive_path = ($row['path'] ? $row['path'] . '/' : '') . $row['name'];
+                
+                if (file_exists($file_path) && is_readable($file_path)) {
+                    $zip->addFile($file_path, $archive_path);
+                } else {
+                    error_log("File not found or not readable: {$file_path} (archive path: {$archive_path})");
+                }
+            }
+
+            $zip->close();
+
+            // Отправляем ZIP файл
+            header('Content-Length: ' . filesize($tmp_zip));
+            readfile($tmp_zip);
+            unlink($tmp_zip);
         }
     }
 }
