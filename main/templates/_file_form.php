@@ -1,4 +1,4 @@
-<? ob_start() ?>
+<?php ob_start() ?>
 <script>
 (function() {
 	$('form').areYouSure({'silent': true});
@@ -54,10 +54,10 @@
 	});
 }());
 </script>
-<? !isset($footer_js) && $footer_js = '' ?>
-<? $footer_js .= ob_get_clean() ?>
+<?php !isset($footer_js) && $footer_js = '' ?>
+<?php $footer_js .= ob_get_clean() ?>
 <form action="<?=$_SERVER['REQUEST_URI']?>" class="g-3 row" enctype="multipart/form-data" method="post">
-<? render_field([
+<?php render_field([
 	'autofocus' => true,
 	'class' => 'form-control',
 	'id' => 'name',
@@ -100,8 +100,8 @@
 	}
 } ?>
 
-<div class="row gx-3 gy-2"><div class="col-auto gy-3"><button type="submit" class="btn btn-primary"><?=__('Save')?></button></div><?
+<div class="row gx-3 gy-2"><div class="col-auto gy-3"><button type="submit" class="btn btn-primary"><?=__('Save')?></button></div><?php
 if (empty($search_query)) {
-	?><div class="col-auto gy-3"><button class="btn btn-secondary" name="save_and_next" title="<?=__('Save and go to next file (Ctrl-Shift-S)')?>"><?=__('Save and go to next file')?></button></div><div class="col-auto gy-3"><button class="btn btn-secondary" name="delete" onclick="return confirm('<?=__('Delete file?')?>')" title="<?=__('Delete file')?>"><?=__('Delete')?></button></div><?
+	?><div class="col-auto gy-3"><button class="btn btn-secondary" name="save_and_next" title="<?=__('Save and go to next file (Ctrl-Shift-S)')?>"><?=__('Save and go to next file')?></button></div><div class="col-auto gy-3"><button class="btn btn-secondary" name="delete" onclick="return confirm('<?=__('Delete file?')?>')" title="<?=__('Delete file')?>"><?=__('Delete')?></button></div><?php
 } ?></div>
 </form>
