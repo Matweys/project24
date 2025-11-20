@@ -68,7 +68,7 @@
 	'value' => $form_data['name'] ?? '',
 ], $form_errors) ?>
 
-<? if (!empty($storage['attributes'])) {
+<?php if (!empty($storage['attributes']) && is_array($storage['attributes'])) {
 	foreach ($storage['attributes'] as $i => $v) {
 		$field_name = 'a' . $v['id'];
 		$value = $form_data[$field_name] ?? '';
