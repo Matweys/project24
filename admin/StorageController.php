@@ -480,10 +480,14 @@ WHERE id = :id'
             ['size', 'size DESC'],
         ];
 
-        $sort_by = isset($sort_fields[$sort_idx]) ? $sort_fields[$sort_idx][(int) ((bool) $sort_desc)] : ($search_query ? "ts_rank(search, plainto_tsquery('russian', :search)) DESC" : 'id');
+        // Если сортировка по размеру, используем сортировку по ID для SQL, а потом пересортируем в PHP
+        $sort_by_sql = ($sort_idx === 3) ? 'id' : (isset($sort_fields[$sort_idx]) ? $sort_fields[$sort_idx][(int) ((bool) $sort_desc)] : ($search_query ? "ts_rank(search, plainto_tsquery('russian', :search)) DESC" : 'id'));
+
+        // Если сортировка по размеру, получаем все данные без LIMIT/OFFSET для правильной сортировки
+        $limit_sql = ($sort_idx === 3) ? '' : 'LIMIT :limit OFFSET :offset';
 
         $r = $this->db->prepare(
-            "SELECT *, permissions.emails AS users
+            "SELECT storage.*, permissions.emails AS users
 FROM storage
 LEFT JOIN (
     SELECT m.storage_id, STRING_AGG(u.email, ', ' ORDER BY u.email) AS emails
@@ -492,21 +496,54 @@ LEFT JOIN (
     GROUP BY m.storage_id
 ) permissions ON permissions.storage_id = storage.id
 ".($search_query ? "WHERE search @@ plainto_tsquery('russian', :search)" : '')."
-ORDER BY {$sort_by}
-LIMIT :limit OFFSET :offset"
+ORDER BY {$sort_by_sql}
+{$limit_sql}"
         );
 
         if ($search_query) {
             pdo_bind_param($r, ':search', $search_query);
         }
 
-        pdo_bind($r, [
-            ':limit' => $page_size,
-            ':offset' => $offset,
-        ]);
+        if ($sort_idx !== 3) {
+            pdo_bind($r, [
+                ':limit' => $page_size,
+                ':offset' => $offset,
+            ]);
+        }
 
         $r->execute();
         $data = $r->fetchAll(\PDO::FETCH_ASSOC);
+
+        // Вычисляем размер каждого хранилища
+        foreach ($data as &$row) {
+            $file_table = 'file_' . (int) $row['id']; // Приводим к int для безопасности
+            $table_check = $this->db->prepare('SELECT to_regclass(?)');
+            $table_check->execute([$file_table]);
+            
+            if ($table_check->fetchColumn()) {
+                // Экранируем имя таблицы двойными кавычками для PostgreSQL
+                $quoted_table = '"' . str_replace('"', '""', $file_table) . '"';
+                $size_query = $this->db->prepare("SELECT COALESCE(SUM(size), 0) FROM {$quoted_table} WHERE folder IS NOT TRUE");
+                $size_query->execute();
+                $row['size'] = (int) $size_query->fetchColumn();
+            } else {
+                $row['size'] = 0;
+            }
+        }
+        unset($row);
+
+        // Если сортировка по размеру, пересортируем данные после вычисления размера
+        if ($sort_idx === 3) {
+            usort($data, function ($a, $b) use ($sort_desc) {
+                if ($sort_desc) {
+                    return $b['size'] <=> $a['size'];
+                } else {
+                    return $a['size'] <=> $b['size'];
+                }
+            });
+            // Применяем пагинацию после сортировки
+            $data = array_slice($data, $offset, $page_size);
+        }
 
         $pager_url = function ($p) use ($search_query, $sort_desc, $sort_idx) {
             return (function () {
